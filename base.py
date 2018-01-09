@@ -11,6 +11,9 @@ import vstream.vstream as vst
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import threading
 
 if __name__=='__main__':
-    vst.capture()
+    threading.start_new_thread(vst.startCapture)
+    
+    print(vst.getCurrentIMG())
