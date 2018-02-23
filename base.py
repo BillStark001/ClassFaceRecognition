@@ -6,14 +6,16 @@ Created on Tue Jan  9 15:25:55 2018
 """
 
 #LOCAL
-import vstream.vstream as vst
+import vstream.interface as vst
 #OTHERS
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import threading
 
+Input=vst.VStream((1,0),(1280,720))
+
 if __name__=='__main__':
-    threading.start_new_thread(vst.startCapture)
-    
-    print(vst.getCurrentIMG())
+    Input.startCapture()
+    Input.showCapture()
+    Input.stopCapture()
