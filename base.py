@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan  9 15:25:55 2018
-
-@author: zhaoj
+Author: BillStark001
+Update: 2018/02/23
 """
 
 #LOCAL
