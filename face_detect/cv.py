@@ -8,14 +8,14 @@ import cv2
 import numpy as np
 #import parent.vstream.cv as VStream
 
-CASC_PATH = '\\cv_haarcascade_files\\haarcascade_frontalface_default.xml'
+CASC_PATH = 'cv_haarcascade_files/haarcascade_frontalface_default.xml'
 
 def detectFace(image):
     if image is None:return []
     Cascade=cv2.CascadeClassifier(CASC_PATH)
     #if image is not None:print(image.scale)
-    print(np.array(image).size)
-    print(image)
+    #print(np.array(image).size)
+    #print(image)
     coors=Cascade.detectMultiScale(image,scaleFactor=1.3,minNeighbors=5)
     return coors
 
@@ -35,15 +35,23 @@ def splitbyCoor(image,coors,resize=False,size=(48,48)):
             except Exception:pass
         faces.append(face)
     return faces
+    
+def saveFaces(faces,path='face_%d.png'):
+    print(faces)
+    for i in range(len(faces)):
+        cv2.imwrite(path%i,faces[i])
 
 if __name__=='__main__':
     vc=cv2.VideoCapture(0)
     while True:
         ret,frame=vc.read()
-        print(np.array(frame).size)
+        #print(np.array(frame).size)
         coors=detectFace(frame)
         #print(coors)
         frame=drawFaceCoor(frame,coors)
+        saveFaces(splitbyCoor(frame,coors))
+        #print(frame)
+        print('1234567890')
         cv2.imshow('Capturing',frame)
         if cv2.waitKey(1)&0xFF == ord('q'):
             break
