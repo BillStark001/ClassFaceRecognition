@@ -6,8 +6,9 @@ Update: 2018/02/23
 
 import cv2
 import numpy as np
+#import parent.vstream.cv as VStream
 
-CASC_PATH = './cv_haarcascade_files/haarcascade_frontalface_default.xml'
+CASC_PATH = '\\cv_haarcascade_files\\haarcascade_frontalface_default.xml'
 
 def detectFace(image):
     if image is None:return []

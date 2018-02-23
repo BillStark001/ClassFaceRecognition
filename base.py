@@ -28,5 +28,6 @@ def showDetect(Wait=10,Key='q'):
     
 if __name__=='__main__':
     Input.startCapture()
-    showDetect()
+    image=Input.getCurrentIMG()
+    cv2.imshow('Capturing',detectAndDraw(image))
     Input.stopCapture()
