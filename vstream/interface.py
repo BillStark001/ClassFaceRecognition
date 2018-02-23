@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Author: BillStark001
-Update:2018/02/23
+Update: 2018/02/23
 """
 
 import cv2
