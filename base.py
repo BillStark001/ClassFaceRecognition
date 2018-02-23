@@ -5,7 +5,8 @@ Update: 2018/02/23
 """
 
 #LOCAL
-import vstream.interface as vst
+import vstream.cv as vst
+import face_detect.cv as detect
 #OTHERS
 import cv2
 import numpy as np
@@ -14,7 +15,18 @@ import threading
 
 Input=vst.VStream((1,0),(1280,720))
 
+def detectAndDraw(image=Input.getCurrentIMG()):
+    print(image)
+    coors=detect.detectFace(image)
+    image=detect.drawFaceCoor(image,coors)
+    return image
+
+def showDetect(Wait=10,Key='q'):
+    while(1):
+        cv2.imshow('Capturing',detectAndDraw(Input.getCurrentIMG()))
+        if cv2.waitKey(Wait)&0xFF==ord(Key):break
+    
 if __name__=='__main__':
     Input.startCapture()
-    Input.showCapture()
+    showDetect()
     Input.stopCapture()

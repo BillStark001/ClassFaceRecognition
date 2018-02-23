@@ -34,18 +34,20 @@ class VStream:
     def getCurrentIMG(self):
         if not self.capturing:return None
         ok1,self.current_im=self.cap.read()
-        if not ok1:return None 
-        else: 
-            try:
-                code=FlipCodes[self.Mirror]
-                self.current_im=cv2.flip(self.current_im,code)
-            except KeyError:
-                pass
-            return self.current_im   
+        #if not ok1:return None 
+        #else: 
+        try:
+            code=FlipCodes[self.Mirror]
+            self.current_im=cv2.flip(self.current_im,code)
+        except KeyError:
+            pass
+        return self.current_im   
         
-    def showCapture(self,Wait=10,Key='q'):
+    def showCapture(self,source=None,Wait=10,Key='q'):
         while(1):
-            cv2.imshow('Capturing', self.getCurrentIMG())
+            if source is None:img=self.getCurrentIMG()
+            else:img=source()
+            cv2.imshow('Capturing',img)
             if cv2.waitKey(Wait)&0xFF==ord(Key):break
         
     def stopCapture(self):
@@ -53,8 +55,6 @@ class VStream:
         self.cap.release()
         cv2.destroyAllWindows() 
         self.capturing=False
-    
- 
 
 if __name__=='__main__':
     v=VStream((1,0),(1280,720))
