@@ -8,11 +8,11 @@ import cv2
 import numpy as np
 #import parent.vstream.cv as VStream
 
-CASC_PATH = 'cv_haarcascade_files/haarcascade_frontalface_default.xml'
+CASC_PATH = 'cv_haarcascade_files\\haarcascade_frontalface_default.xml'
 
 def detectFace(image):
     if image is None:return []
-    Cascade=cv2.CascadeClassifier(CASC_PATH)
+    Cascade=cv2.CascadeClassifier('cv_haarcascade_files/haarcascade_frontalface_default.xml')
     #if image is not None:print(image.scale)
     #print(np.array(image).size)
     #print(image)
@@ -49,7 +49,7 @@ if __name__=='__main__':
         coors=detectFace(frame)
         #print(coors)
         frame=drawFaceCoor(frame,coors)
-        saveFaces(splitbyCoor(frame,coors))
+        #saveFaces(splitbyCoor(frame,coors))
         #print(frame)
         print('1234567890')
         cv2.imshow('Capturing',frame)

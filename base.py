@@ -16,18 +16,20 @@ import threading
 Input=vst.VStream((1,0),(1280,720))
 
 def detectAndDraw(image=Input.getCurrentIMG()):
-    print(image)
+    #print(image)
     coors=detect.detectFace(image)
     image=detect.drawFaceCoor(image,coors)
+    detect.saveFaces(detect.splitbyCoor(image,coors))
     return image
 
 def showDetect(Wait=10,Key='q'):
     while(1):
-        cv2.imshow('Capturing',detectAndDraw(Input.getCurrentIMG()))
+        image=Input.getCurrentIMG()
+        cv2.imshow('Capturing',detectAndDraw(image))
+        
         if cv2.waitKey(Wait)&0xFF==ord(Key):break
     
 if __name__=='__main__':
     Input.startCapture()
-    image=Input.getCurrentIMG()
-    cv2.imshow('Capturing',detectAndDraw(image))
+    showDetect()#Input.showCapture(source=detectAndDraw())
     Input.stopCapture()
