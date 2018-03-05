@@ -1,0 +1,11 @@
+# python
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+*/__pycache__/
+
+# some local files
+*/.settings/
+*/.DS_Store
+.DS_Store
