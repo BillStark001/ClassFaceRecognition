@@ -9,3 +9,6 @@
 */.settings/
 */.DS_Store
 .DS_Store
+
+# images (temporal)
+*.png

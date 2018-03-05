@@ -8,3 +8,7 @@ Nothing but a couple of yowatori' s yowamono --by zjn
 
 ### references
 ......
+
+### coding styles
+well, I think this is a problem.
+camelCase or follow PEP?
