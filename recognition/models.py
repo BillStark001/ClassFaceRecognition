@@ -130,3 +130,42 @@ def VGG16_TOP(input_tensor=None):
     model.load_weights(weights_path)
     
     return model
+    
+def conv_bn_relu(x, out_ch, name):
+    x = Convolution2D(out_ch, 3, 3, border_mode='same', name=name)(x)
+    x = BatchNormalization(name='{}_bn'.format(name))(x)
+    x = Activation('relu', name='{}_relu'.format(name))(x)
+    return x
+
+def VGG16_strange(input_shape=(224, 224, 3), nb_classes=1024, weights_path=None):
+
+    inputs = Input(shape=input_shape, name='input')
+
+    x = conv_bn_relu(inputs, 64, name='block1_conv1')
+    x = conv_bn_relu(x, 64, name='block1_conv2')
+    x = MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    x = conv_bn_relu(x, 128, name='block2_conv1')
+    x = conv_bn_relu(x, 128, name='block2_conv2')
+    x = MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    x = conv_bn_relu(x, 256, name='block3_conv1')
+    x = conv_bn_relu(x, 256, name='block3_conv2')
+    x = conv_bn_relu(x, 256, name='block3_conv3')
+    x = MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    x = conv_bn_relu(x, 512, name='block4_conv1')
+    x = conv_bn_relu(x, 512, name='block4_conv2')
+    x = conv_bn_relu(x, 512, name='block4_conv3')
+    x = MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    x = Flatten()(x)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dense(nb_classes, activation='softmax', name='predictions')(x)
+    
+    model = Model(input=inputs, output=x)
+    
+    if not weights_path is None:
+        model.load_weights(weights_path)
+
+    return model
