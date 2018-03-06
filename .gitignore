@@ -12,3 +12,8 @@
 
 # images (temporal)
 *.png
+*.jpg
+
+# yml configuration
+*.yml
+

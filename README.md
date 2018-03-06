@@ -3,8 +3,10 @@ Nothing but a couple of yowatori' s yowamono --by zjn
 
 ### test
 + face detection
-+ face alignment(?)
++ face alignment
 + face recognition
+
+### a bunch of weird things
 
 ### references
 ......
