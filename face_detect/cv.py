@@ -25,10 +25,10 @@ def drawFaceCoor(image,coors,color=(0,255,0),width=1):
         image=cv2.rectangle(image,(x,y),(x+w,y+h),color,width)
     return image
 
-def splitbyCoor(image,coors,resize=False,size=(48,48)):
+def splitbyCoor(image,coors,resize=False,size=(48,48),bias=0):
     faces=[]
     for coor in coors:
-        face=image[coor[1]:(coor[1]+coor[2]),coor[0]:(coor[0]+coor[3])]
+        face=image[coor[1]-bias:(coor[1]+coor[2])+bias,coor[0]-bias:(coor[0]+coor[3])+bias]
         if resize:
             try:
                 face=cv2.resize(face,size,interpolation=cv2.INTER_CUBIC)
@@ -49,6 +49,10 @@ if __name__=='__main__':
         coors=detectFace(frame)
         #print(coors)
         frame=drawFaceCoor(frame,coors)
+        img=splitbyCoor(frame,coors)
+        if not len(img)==0:
+            print(img[0].shape)
+            img=np.array(img[0],dtype='uint8')
         #saveFaces(splitbyCoor(frame,coors))
         #print(frame)
         print('1234567890')
