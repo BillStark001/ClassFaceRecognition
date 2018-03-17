@@ -6,7 +6,8 @@ Created on Mon Mar  5 21:26:16 2018
 
 import keras
 from keras.models import Model
-from keras.layers import Flatten, Dense, Input, Convolution2D, MaxPooling2D
+from keras.layers.core import Flatten, Dense, Input
+from keras.layers import Convolution2D, MaxPooling2D
 from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.utils.data_utils import get_file
 from keras import backend as K
