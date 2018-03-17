@@ -11,3 +11,5 @@ face_1.png
 face_2.png
 face_2.png
 recognition/models/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5
+alignment/shape_predictor_68_face_landmarks.dat
+*.txt

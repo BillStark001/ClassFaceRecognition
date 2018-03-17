@@ -19,7 +19,7 @@ def detectAndDraw(image=Input.getCurrentIMG()):
     #print(image)
     coors=detect.detectFace(image)
     image=detect.drawFaceCoor(image,coors)
-    detect.saveFaces(detect.splitbyCoor(image,coors))
+    #detect.saveFaces(detect.splitbyCoor(image,coors))
     return image
 
 def showDetect(Wait=10,Key='q'):
