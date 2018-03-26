@@ -4,13 +4,69 @@ Created on Mon Mar  5 21:26:16 2018
 @author: BillStark001
 """
 
-import keras
 from keras.models import Model
-from keras.layers.core import Flatten, Dense, Input
+from keras.layers import Dense, Activation, Flatten, Dropout, Lambda, ELU, concatenate, GlobalAveragePooling2D, Input, BatchNormalization, SeparableConv2D, Subtract
 from keras.layers import Convolution2D, MaxPooling2D
+from keras.optimizers import Adam, RMSprop, SGD
 from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.utils.data_utils import get_file
 from keras import backend as K
+from keras.applications.xception import Xception
+
+def euclidean_distance(inputs):
+    assert len(inputs) == 2, \
+        'Euclidean distance needs 2 inputs, %d given' % len(inputs)
+    u, v = inputs
+    return K.sqrt(K.sum((K.square(u - v)), axis=1, keepdims=True))
+
+def contrastive_loss(y_true,y_pred):
+    margin=1.
+    return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
+
+def Xception_FT(shape=(112,112,3)):
+	
+    model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
+    model.summary()
+    
+    im_in = Input(shape=shape)
+    
+    x1 = model(im_in)
+    x1 = Flatten()(x1)
+    x1 = Dense(512, activation="relu")(x1)
+    x1 = Dropout(0.2)(x1)
+    
+    feat_x = Dense(128, activation="linear")(x1)
+    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
+    
+    model_top = Model(inputs = [im_in], outputs = feat_x)
+    
+    model_top.summary()
+    
+    im_in1 = Input(shape=shape)
+    im_in2 = Input(shape=shape)
+    
+    feat_x1 = model_top(im_in1)
+    feat_x2 = model_top(im_in2)
+    
+    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
+    
+    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
+    
+    model_final.summary()
+    
+    adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.001, momentum=0.9)
+    model_final.compile(optimizer=adam, loss=contrastive_loss)
+	
+    return model_final
+	
+def main():
+	model=Xception_FT()
+	
+if __name__=='__main__':
+	main()
+
+# VGGs are DESERTED!
 
 def VGG16(input_tensor=None):
     '''

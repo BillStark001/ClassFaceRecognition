@@ -15,3 +15,4 @@ alignment/shape_predictor_68_face_landmarks.dat
 shape_predictor_68_face_landmarks.dat
 *.txt
 *.pyc
+alignment/1.jpg
