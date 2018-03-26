@@ -12,11 +12,12 @@ import glob
 import matplotlib.pyplot as plt
 from PIL import Image
 
-root='F:/Datasets'
-train_dir=root+'/VAPRBGD/train/'
-val_dir=root+'/VAPRBGD/val/'
+root='F:\\Datasets'
+train_dir=root+'\\VAPRBGD\\train\\'
+val_dir=root+'\\VAPRBGD\\val\\'
 
 def create_couple(file_path):
+    print(file_path)
     folder=np.random.choice(glob.glob(file_path + "*"))
     while folder == "datalab":
       folder=np.random.choice(glob.glob(file_path + "*"))
@@ -263,7 +264,7 @@ def create_wrong_rgbd(file_path):
     full2[:,:,3] = mat2_small
     return np.array([full1, full2])
 
-a=create_couple(train_dir)
+create_couple(train_dir)
 b=create_couple_rgbd(val_dir)
 c=create_wrong(train_dir)
 d=create_wrong_rgbd(val_dir)

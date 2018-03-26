@@ -59,12 +59,86 @@ def Xception_FT(shape=(112,112,3)):
     model_final.compile(optimizer=adam, loss=contrastive_loss)
 	
     return model_final
+
+def fire(x, squeeze=16, expand=64):
+    x = Convolution2D(squeeze, (1,1), padding='valid')(x)
+    x = Activation('relu')(x)
+    
+    left = Convolution2D(expand, (1,1), padding='valid')(x)
+    left = Activation('relu')(left)
+    
+    right = Convolution2D(expand, (3,3), padding='same')(x)
+    right = Activation('relu')(right)
+    
+    x = concatenate([left, right], axis=3)
+    return x
+
+def SqueezeNet(shape=(200,200,4)):
+    img_input=Input(shape=shape)
+    
+    x = Convolution2D(64, (5, 5), strides=(2, 2), padding='valid')(img_input)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+    
+    x = fire(x, squeeze=16, expand=16)
+    x = fire(x, squeeze=16, expand=16)
+    x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+    
+    x = fire(x, squeeze=32, expand=32)
+    x = fire(x, squeeze=32, expand=32)
+    x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+    
+    x = fire(x, squeeze=48, expand=48)
+    x = fire(x, squeeze=48, expand=48)
+    x = fire(x, squeeze=64, expand=64)
+    x = fire(x, squeeze=64, expand=64)
+    
+    x = Dropout(0.2)(x)
+    
+    x = Convolution2D(512, (1, 1), padding='same')(x)
+    out = Activation('relu')(x)
+    
+    modelsqueeze=Model(img_input, out)
+    
+    modelsqueeze.summary()
+    
+    im_in = Input(shape=shape)
+    
+    x1 = modelsqueeze(im_in)
+    x1 = Flatten()(x1)
+    x1 = Dense(512, activation="relu")(x1)
+    x1 = Dropout(0.2)(x1)
+    
+    feat_x = Dense(128, activation="linear")(x1)
+    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
+    
+    model_top = Model(inputs = [im_in], outputs = feat_x)
+    
+    model_top.summary()
+    
+    im_in1 = Input(shape=shape)
+    im_in2 = Input(shape=shape)
+    
+    feat_x1 = model_top(im_in1)
+    feat_x2 = model_top(im_in2)
+    
+    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
+    
+    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
+    
+    model_final.summary()
+    
+    adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.001, momentum=0.9)
+    model_final.compile(optimizer=adam, loss=contrastive_loss)
+    return model_final
 	
 def main():
-	model=Xception_FT()
+    model=Xception_FT()
 	
 if __name__=='__main__':
-	main()
+    main()
 
 # VGGs are DESERTED!
 
