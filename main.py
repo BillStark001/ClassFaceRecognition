@@ -29,6 +29,10 @@ def detectAndDraw(image=Input.getCurrentIMG()):
                     l[0]=l[0]+coors[i,0]-20
                     l[1]=l[1]+coors[i,1]-20
                     cv2.rectangle(image,(l[0],l[1]),(l[0]+1,l[1]+1),(255,0,0),1)
+            
+            aligned_img=align.align(image,np.matrix(landmark))
+            cv2.imshow('Aligned',aligned_img)
+
     #detect.saveFaces(detect.splitbyCoor(image,coors,bias=20))
     return image
 
