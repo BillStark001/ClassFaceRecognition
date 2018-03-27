@@ -1,0 +1,488 @@
+# -*- coding: utf-8 -*-
+"""
+# FaceID implementation using face embeddings and RGBD images.
+Made by [Norman Di Palo](https://medium.com/@normandipalo), March 2018.
+"""
+
+root='F:/Datasets'
+train_dir=root+'/VAPRBGD/train/'
+val_dir=root+'/VAPRBGD/val/'
+
+"""# Input preprocessing.
+Here we create some functions that will create the input couple for our model, both correct and wrong couples. I created functions to have both depth-only input and RGBD inputs.
+"""
+#LOCAL
+import data_loader
+#LIB
+import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from PIL import Image
+
+root='F:/Datasets'
+train_dir=root+'/VAPRBGD/train/'
+val_dir=root+'/VAPRBGD/val/'
+
+def create_couple(file_path):
+    folder=np.random.choice(glob.glob(file_path + "*"))
+    while folder == "datalab":
+      folder=np.random.choice(glob.glob(file_path + "*"))
+    #print(folder)
+    mat=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue 
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat = np.asarray(mat)
+    mat_small=mat[140:340,220:420]
+    mat_small=(mat_small-np.mean(mat_small))/np.max(mat_small)
+    #plt.imshow(mat_small)
+    #plt.show()
+    
+    mat2=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue 
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat2[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat2 = np.asarray(mat2)
+    mat2_small=mat2[140:340,220:420]
+    mat2_small=(mat2_small-np.mean(mat2_small))/np.max(mat2_small)
+#    plt.imshow(mat2_small)
+#    plt.show()
+    return np.array([mat_small, mat2_small])
+
+def create_couple_rgbd(file_path):
+    folder=np.random.choice(glob.glob(file_path + "*"))
+    while folder == "datalab":
+      folder=np.random.choice(glob.glob(file_path + "*"))
+  #  print(folder)
+    mat=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue    
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat = np.asarray(mat)
+    mat_small=mat[140:340,220:420]
+    img = Image.open(depth_file[:-5] + "c.bmp")
+    img.thumbnail((640,480))
+    img = np.asarray(img)
+    img = img[140:340,220:420]
+    mat_small=(mat_small-np.mean(mat_small))/np.max(mat_small)
+#    plt.imshow(mat_small)
+#    plt.show()
+#    plt.imshow(img)
+#    plt.show()
+    
+    
+    mat2=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat2[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat2 = np.asarray(mat2)
+    mat2_small=mat2[140:340,220:420]
+    img2 = Image.open(depth_file[:-5] + "c.bmp")
+    img2.thumbnail((640,480))
+    img2 = np.asarray(img2)
+    img2 = img2[160:360,240:440]
+
+ #   plt.imshow(img2)
+ #   plt.show()
+    mat2_small=(mat2_small-np.mean(mat2_small))/np.max(mat2_small)
+ #   plt.imshow(mat2_small)
+ #   plt.show()
+    
+    full1 = np.zeros((200,200,4))
+    full1[:,:,:3] = img[:,:,:3]
+    full1[:,:,3] = mat_small
+    
+    full2 = np.zeros((200,200,4))
+    full2[:,:,:3] = img2[:,:,:3]
+    full2[:,:,3] = mat2_small
+    return np.array([full1, full2])
+
+def create_wrong(file_path):
+    folder=np.random.choice(glob.glob(file_path + "*"))
+    while folder == "datalab":
+      folder=np.random.choice(glob.glob(file_path + "*"))    
+    mat=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue 
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat = np.asarray(mat)
+    mat_small=mat[140:340,220:420]
+    mat_small=(mat_small-np.mean(mat_small))/np.max(mat_small)
+    #plt.imshow(mat_small)
+    #plt.show()
+    
+    folder2=np.random.choice(glob.glob(file_path + "*"))
+    while folder==folder2 or folder2=="datalab": #it activates if it chose the same folder
+        folder2=np.random.choice(glob.glob(file_path + "*"))
+    mat2=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder2 + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat2[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat2 = np.asarray(mat2)
+    mat2_small=mat2[140:340,220:420]
+    mat2_small=(mat2_small-np.mean(mat2_small))/np.max(mat2_small)
+    #plt.imshow(mat2_small)
+    #plt.show()
+
+    return np.array([mat_small, mat2_small])
+
+def create_wrong_rgbd(file_path):
+    folder=np.random.choice(glob.glob(file_path + "*"))
+    while folder == "datalab":
+      folder=np.random.choice(glob.glob(file_path + "*"))    
+    mat=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat = np.asarray(mat)
+    mat_small=mat[140:340,220:420]
+    img = Image.open(depth_file[:-5] + "c.bmp")
+    img.thumbnail((640,480))
+    img = np.asarray(img)
+    img = img[140:340,220:420]
+    mat_small=(mat_small-np.mean(mat_small))/np.max(mat_small)
+  #  plt.imshow(img)
+  #  plt.show()
+  #  plt.imshow(mat_small)
+  #  plt.show()
+    folder2=np.random.choice(glob.glob(file_path + "*"))
+    while folder==folder2 or folder2=="datalab": #it activates if it chose the same folder
+        folder2=np.random.choice(glob.glob(file_path + "*"))
+    mat2=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = np.random.choice(glob.glob(folder2 + "/*.dat"))
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue 
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat2[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat2 = np.asarray(mat2)
+    mat2_small=mat2[140:340,220:420]
+    img2 = Image.open(depth_file[:-5] + "c.bmp")
+    img2.thumbnail((640,480))
+    img2 = np.asarray(img2)
+    img2 = img2[140:340,220:420]
+    mat2_small=(mat2_small-np.mean(mat2_small))/np.max(mat2_small)
+ #   plt.imshow(img2)
+ #   plt.show()
+ #   plt.imshow(mat2_small)
+ #   plt.show()
+    full1 = np.zeros((200,200,4))
+    full1[:,:,:3] = img[:,:,:3]
+    full1[:,:,3] = mat_small
+    
+    full2 = np.zeros((200,200,4))
+    full2[:,:,:3] = img2[:,:,:3]
+    full2[:,:,3] = mat2_small
+    return np.array([full1, full2])
+
+"""# Network crafting.
+Now we create the network. We first manually create the *constrative loss*, then we define the network architecture starting from the SqueezeNet architecture, and then using it as a siamese-network for embedding faces into a manifold. (the network for now is very big and could be heavily optimized, but I just wanted to show a proof-of-concept)
+"""
+
+from keras.models import Sequential, Model
+from keras.layers import Dense, Activation, Flatten, Dropout, Lambda, ELU, concatenate, GlobalAveragePooling2D, Input, BatchNormalization, SeparableConv2D, Subtract, concatenate
+from keras.activations import relu, softmax
+from keras.layers.convolutional import Convolution2D
+from keras.layers.pooling import MaxPooling2D, AveragePooling2D
+from keras.optimizers import Adam, RMSprop, SGD
+from keras.regularizers import l2
+from keras import backend as K
+
+def euclidean_distance(inputs):
+    assert len(inputs) == 2, \
+        'Euclidean distance needs 2 inputs, %d given' % len(inputs)
+    u, v = inputs
+    return K.sqrt(K.sum((K.square(u - v)), axis=1, keepdims=True))
+        
+
+def contrastive_loss(y_true,y_pred):
+    margin=1.
+    return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
+   # return K.mean( K.square(y_pred) )
+
+
+
+
+model_final=model_squeezenet()
+
+"""# Learning phase.
+We write the generators that will give our model batches of data to train on, then we run the training.
+"""
+
+def generator(batch_size):
+  
+  while 1:
+    X=[]
+    y=[]
+    switch=True
+    for _ in range(batch_size):
+   #   switch += 1
+      if switch:
+     #   print("correct")
+        X.append(create_couple_rgbd(train_dir).reshape((2,200,200,4)))
+        y.append(np.array([0.]))
+      else:
+     #   print("wrong")
+        X.append(create_wrong_rgbd(train_dir).reshape((2,200,200,4)))
+        y.append(np.array([1.]))
+      switch=not switch
+    X = np.asarray(X)
+    y = np.asarray(y)
+    XX1=X[0,:]
+    XX2=X[1,:]
+    yield [X[:,0],X[:,1]],y
+
+def val_generator(batch_size):
+  
+  while 1:
+    X=[]
+    y=[]
+    switch=True
+    for _ in range(batch_size):
+      if switch:
+        X.append(create_couple_rgbd(val_dir).reshape((2,200,200,4)))
+        y.append(np.array([0.]))
+      else:
+        X.append(create_wrong_rgbd(val_dir).reshape((2,200,200,4)))
+        y.append(np.array([1.]))
+      switch=not switch
+    X = np.asarray(X)
+    y = np.asarray(y)
+    XX1=X[0,:]
+    XX2=X[1,:]
+    yield [X[:,0],X[:,1]],y
+
+gen = generator(16)
+val_gen = val_generator(4)
+
+outputs = model_final.fit_generator(gen, steps_per_epoch=30, epochs=50, validation_data = val_gen, validation_steps=20)
+
+"""# Some model tests."""
+
+cop = create_couple(val_dir)
+model_final.evaluate([cop[0].reshape((1,200,200,4)), cop[1].reshape((1,200,200,4))], np.array([0.]))
+
+cop = create_wrong_rgbd(val_dir)
+model_final.predict([cop[0].reshape((1,200,200,4)), cop[1].reshape((1,200,200,4))])
+
+"""# Saving and loading the model.
+The next cells show both how to save the model weights and upload them into your Drive, and then how to retrieve those weights from the Drive to load a pre-trained model.
+"""
+
+model_final.save("faceid_big_rgbd_2.h5")
+
+
+
+
+from keras.models import load_model
+
+model_final.load_weights('pesi.h5')
+
+"""# Raw output.
+Here we create a model that outputs the embedding of an input face instead of the distance between two embeddings, so we can map those outputs.
+"""
+
+im_in1 = Input(shape=(200,200,4))
+#im_in2 = Input(shape=(200,200,4))
+
+feat_x1 = model_top(im_in1)
+#feat_x2 = model_top(im_in2)
+
+
+
+model_output = Model(inputs = im_in1, outputs = feat_x1)
+
+model_output.summary()
+
+adam = Adam(lr=0.001)
+
+sgd = SGD(lr=0.001, momentum=0.9)
+
+model_output.compile(optimizer=adam, loss=contrastive_loss)
+
+cop = create_couple_rgbd(val_dir)
+model_output.predict(cop[0].reshape((1,200,200,4)))
+
+def create_input_rgbd(file_path):
+  #  print(folder)
+    mat=np.zeros((480,640), dtype='float32')
+    i=0
+    j=0
+    depth_file = file_path
+    with open(depth_file) as file:
+        for line in file:
+            vals = line.split('\t')
+            for val in vals:
+                if val == "\n": continue    
+                if int(val) > 1200 or int(val) == -1: val= 1200
+                mat[i][j]=float(int(val))
+                j+=1
+                j=j%640
+
+            i+=1
+        mat = np.asarray(mat)
+    mat_small=mat[140:340,220:420]
+    img = Image.open(depth_file[:-5] + "c.bmp")
+    img.thumbnail((640,480))
+    img = np.asarray(img)
+    img = img[140:340,220:420]
+    mat_small=(mat_small-np.mean(mat_small))/np.max(mat_small)
+    plt.figure(figsize=(8,8))
+    plt.grid(True)
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(mat_small)
+    plt.show()
+    plt.figure(figsize=(8,8))
+    plt.grid(True)
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(img)
+    plt.show()
+    
+    
+    
+    full1 = np.zeros((200,200,4))
+    full1[:,:,:3] = img[:,:,:3]
+    full1[:,:,3] = mat_small
+    
+    return np.array([full1])
+
+"""# Data visualization.
+Here we store the embeddings for all the faces in the dataset. Then, using both **t-SNE** and **PCA**, we visualize the embeddings going from 128 to 2 dimensions.
+"""
+
+outputs=[]
+n=0
+for folder in glob.glob('faceid_train/*'):
+  i=0
+  for file in glob.glob(folder + '/*.dat'):
+    i+=1
+    outputs.append(model_output.predict(create_input_rgbd(file).reshape((1,200,200,4))))
+  print(i)
+  n+=1
+  print("Folder ", n, " of ", len(glob.glob('faceid_train/*')))
+print(len(outputs))
+
+outputs= np.asarray(outputs)
+outputs = outputs.reshape((-1,128))
+outputs.shape
+
+import sklearn
+from sklearn.manifold import TSNE
+
+X_embedded = TSNE(2).fit_transform(outputs)
+X_embedded.shape
+
+import numpy as np
+from sklearn.decomposition import PCA
+
+X_PCA = PCA(3).fit_transform(outputs)
+print(X_PCA.shape)
+
+#X_embedded = TSNE(2).fit_transform(X_PCA)
+#print(X_embedded.shape)
+
+import matplotlib.pyplot as plt
+
+color = 0
+for i in range(len((X_embedded))):
+  el = X_embedded[i]
+  if i % 51 == 0 and not i==0:
+    color+=1
+    color=color%10
+  plt.scatter(el[0], el[1], color="C" + str(color))
+
+"""# Distance between two arbitrary RGBD pictures."""
+
+file1 = ('faceid_train/(2012-05-16)(154211)/015_1_d.dat')
+inp1 = create_input_rgbd(file1)
+file1 = ('faceid_train/(2012-05-16)(154211)/011_1_d.dat')
+inp2 = create_input_rgbd(file1)
+
+model_final.predict([inp1, inp2])
