@@ -23,6 +23,43 @@ def contrastive_loss(y_true,y_pred):
     margin=1.
     return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
 
+def MobileNet_FT(shape=(112,112,3)):
+	
+    model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
+    model.summary()
+    
+    im_in = Input(shape=shape)
+    
+    x1 = model(im_in)
+    x1 = Flatten()(x1)
+    x1 = Dense(512, activation="relu")(x1)
+    x1 = Dropout(0.2)(x1)
+    
+    feat_x = Dense(128, activation="linear")(x1)
+    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
+    
+    model_top = Model(inputs = [im_in], outputs = feat_x)
+    
+    model_top.summary()
+    
+    im_in1 = Input(shape=shape)
+    im_in2 = Input(shape=shape)
+    
+    feat_x1 = model_top(im_in1)
+    feat_x2 = model_top(im_in2)
+    
+    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
+    
+    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
+    
+    model_final.summary()
+    
+    adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.001, momentum=0.9)
+    model_final.compile(optimizer=adam, loss=contrastive_loss)
+	
+    return model_final
+    
 def Xception_FT(shape=(112,112,3)):
 	
     model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
@@ -135,7 +172,7 @@ def SqueezeNet(shape=(200,200,4)):
     return model_final
 	
 def main():
-    model=Xception_FT()
+    model=MobileNet_FT()
 	
 if __name__=='__main__':
     main()
