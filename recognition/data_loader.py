@@ -13,23 +13,32 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 root='C:\\Users\\zhaoj\\Documents\\Datasets'
+#root=
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
+train_dir_vgg=root+'\\VGGFACE\\train\\'
+val_dir_vgg=root+'\\VGGFACE\\val\\'
 
-def create_single(file_path,region=(90,112,170,112),thumbnail=(432,324)):
+def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324)):
     img=Image.open(file_path)
     img.thumbnail(thumbnail)
     img=np.array(img)
     mat_small=img[region[0]:region[0]+region[1],region[2]:region[2]+region[3]]
     return mat_small
+    
+def create_single_VGGFACE(file_path,resize=(112,112),minsize=72):
+    img=Image.open(file_path)
+    img=img.resize(resize)
+    img=np.array(img)
+    return img
 
-def create_positive_rgb(file_path):
+def create_positive_rgb(file_path,single,ext='jpg'):
     path=np.random.choice(glob.glob(file_path + '*'))
-    path=np.random.choice(glob.glob(path + "/*.bmp"),2)
-    print(path)
+    path=np.random.choice(glob.glob(path + "/*."+ext),2)
+    #print(path)
     
-    img1=create_single(path[0])
-    img2=create_single(path[1])
+    img1=single(path[0])
+    img2=single(path[1])
     '''
     plt.imshow(img1)
     plt.show()
@@ -38,13 +47,13 @@ def create_positive_rgb(file_path):
     '''
     return np.array([img1, img2])
     
-def create_negative_rgb(file_path):
+def create_negative_rgb(file_path,single,ext='jpg'):
     path=np.random.choice(glob.glob(file_path + '*'),2)
-    path=[np.random.choice(glob.glob(path[0] + "/*.bmp")),np.random.choice(glob.glob(path[1] + "/*.bmp"))]
-    print(path)
+    path=[np.random.choice(glob.glob(path[0] + "\\*."+ext)),np.random.choice(glob.glob(path[1] + "\\*."+ext))]
+    #print(path)
     
-    img1=create_single(path[0])
-    img2=create_single(path[1])
+    img1=single(path[0])
+    img2=single(path[1])
     '''
     plt.imshow(img1)
     plt.show()
@@ -53,7 +62,7 @@ def create_negative_rgb(file_path):
     '''
     return np.array([img1, img2])
     
-def generator(path,batch_size=16,shape=(2,112,112,3)):
+def generator(path,single,batch_size=16,shape=(2,112,112,3)):
   
   while 1:
     X=[]
@@ -61,10 +70,10 @@ def generator(path,batch_size=16,shape=(2,112,112,3)):
     switch=True
     for _ in range(batch_size):
       if switch:
-        X.append(create_positive_rgb(path).reshape(shape))
+        X.append(create_positive_rgb(path,single,ext='bmp').reshape(shape))
         y.append(np.array([0.]))
       else:
-        X.append(create_negative_rgb(path).reshape(shape))
+        X.append(create_negative_rgb(path,single,ext='bmp').reshape(shape))
         y.append(np.array([1.]))
       switch=not switch
     X = np.asarray(X)
@@ -73,8 +82,11 @@ def generator(path,batch_size=16,shape=(2,112,112,3)):
     XX2=X[1,:]
     yield [X[:,0],X[:,1]],y
 
-gen = generator(train_dir)
-val_gen = generator(val_dir,batch_size=4)
+gen_vap = generator(train_dir,create_single_VAPRGBD)
+val_gen_vap = generator(val_dir,create_single_VAPRGBD,batch_size=4)
+
+gen_vgg = generator(train_dir_vgg,create_single_VGGFACE)
+val_gen_vgg = generator(val_dir_vgg,create_single_VGGFACE,batch_size=4)
 
 if __name__=='__main__':
     pass
