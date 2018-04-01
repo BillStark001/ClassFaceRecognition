@@ -12,7 +12,7 @@ import glob
 import matplotlib.pyplot as plt
 from PIL import Image
 
-root='C:\\Users\\zhaoj\\Documents\\Datasets'
+root='F:\\Datasets'
 #root=
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
@@ -22,7 +22,8 @@ val_dir_vgg=root+'\\VGGFACE\\val\\'
 def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324)):
     img=Image.open(file_path)
     img.thumbnail(thumbnail)
-    img=np.array(img)
+    img=np.array(img)[:,:,:3]
+    #print(img.shape)
     mat_small=img[region[0]:region[0]+region[1],region[2]:region[2]+region[3]]
     return mat_small
     
@@ -62,7 +63,7 @@ def create_negative_rgb(file_path,single,ext='jpg'):
     '''
     return np.array([img1, img2])
     
-def generator(path,single,batch_size=16,shape=(2,112,112,3)):
+def generator(path,single,batch_size=16,shape=(2,112,112,3),ext='jpg'):
   
   while 1:
     X=[]
@@ -70,20 +71,21 @@ def generator(path,single,batch_size=16,shape=(2,112,112,3)):
     switch=True
     for _ in range(batch_size):
       if switch:
-        X.append(create_positive_rgb(path,single,ext='bmp').reshape(shape))
+        X.append(create_positive_rgb(path,single,ext=ext).reshape(shape))
         y.append(np.array([0.]))
       else:
-        X.append(create_negative_rgb(path,single,ext='bmp').reshape(shape))
+        X.append(create_negative_rgb(path,single,ext=ext).reshape(shape))
         y.append(np.array([1.]))
       switch=not switch
     X = np.asarray(X)
     y = np.asarray(y)
-    XX1=X[0,:]
-    XX2=X[1,:]
+    x=[X[:,0],X[:,1]]
+    #print(len(x),len(X))
+    #print(y)
     yield [X[:,0],X[:,1]],y
 
-gen_vap = generator(train_dir,create_single_VAPRGBD)
-val_gen_vap = generator(val_dir,create_single_VAPRGBD,batch_size=4)
+gen_vap = generator(train_dir,create_single_VAPRGBD,ext='bmp')
+val_gen_vap = generator(val_dir,create_single_VAPRGBD,batch_size=4,ext='bmp')
 
 gen_vgg = generator(train_dir_vgg,create_single_VGGFACE)
 val_gen_vgg = generator(val_dir_vgg,create_single_VGGFACE,batch_size=4)

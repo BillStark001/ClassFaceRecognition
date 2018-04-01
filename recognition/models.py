@@ -41,7 +41,7 @@ def MobileNet_FT(shape=(128,128,3)):
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
     
-    model_top.summary()
+    #model_top.summary()
     
     im_in1 = Input(shape=shape)
     im_in2 = Input(shape=shape)
@@ -78,7 +78,7 @@ def Xception_FT(shape=(112,112,3)):
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
     
-    model_top.summary()
+    #model_top.summary()
     
     im_in1 = Input(shape=shape)
     im_in2 = Input(shape=shape)
@@ -111,7 +111,7 @@ def fire(x, squeeze=16, expand=64):
     x = concatenate([left, right], axis=3)
     return x
 
-def SqueezeNet(shape=(200,200,4)):
+def SqueezeNet(shape=(112,112,3)):
     img_input=Input(shape=shape)
     
     x = Convolution2D(64, (5, 5), strides=(2, 2), padding='valid')(img_input)

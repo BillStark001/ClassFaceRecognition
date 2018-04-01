@@ -9,16 +9,15 @@ import models
 import data_loader
 #NOT LOCAL
 import numpy as np
-import cv2
 
 root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 
-gen=data_loader.gen
-val_gen=data_loader.val_gen
+gen=data_loader.gen_vap
+val_gen=data_loader.val_gen_vap
 
-model=models.Xception_FT()
+model=models.SqueezeNet()
 outputs=model.fit_generator(gen, steps_per_epoch=30, epochs=50, validation_data = val_gen, validation_steps=20)
 
 cop = data_loader.create_positive_rgb(val_dir)
