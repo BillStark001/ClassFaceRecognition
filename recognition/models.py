@@ -12,6 +12,7 @@ from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.utils.data_utils import get_file
 from keras import backend as K
 from keras.applications.xception import Xception
+from keras.applications.mobilenet import MobileNet
 
 def euclidean_distance(inputs):
     assert len(inputs) == 2, \
@@ -23,9 +24,9 @@ def contrastive_loss(y_true,y_pred):
     margin=1.
     return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
 
-def MobileNet_FT(shape=(112,112,3)):
+def MobileNet_FT(shape=(128,128,3)):
 	
-    model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
+    model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
     model.summary()
     
     im_in = Input(shape=shape)
