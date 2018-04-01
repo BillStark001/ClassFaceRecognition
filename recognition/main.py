@@ -4,22 +4,29 @@ Created on Mon Mar  5 20:29:27 2018
 @author: BillStark001
 """
 
-import keras
+#LOCAL
 import models
-
-from keras.preprocessing import image
-from imagenet_utils import decode_predictions, preprocess_input
-
+import data_loader
+#NOT LOCAL
 import numpy as np
 import cv2
 
-#input_dimension=(1,64,64,3)
-#input_tensor=np.zeros(input_dimension,dtype='int32')
-#input_tensor=preprocess(input_tensor)
-#input_tensor=K.variable(input_tensor)
+root='C:\\Users\\zhaoj\\Documents\\Datasets'
+train_dir=root+'\\VAPRBGD\\train\\'
+val_dir=root+'\\VAPRBGD\\val\\'
 
-model=models.VGG16()
+gen=data_loader.gen
+val_gen=data_loader.val_gen
 
+model=models.Xception_FT()
+outputs=model.fit_generator(gen, steps_per_epoch=30, epochs=50, validation_data = val_gen, validation_steps=20)
+
+cop = data_loader.create_positive_rgb(val_dir)
+model.evaluate([cop[0].reshape((1,112,112,3)), cop[1].reshape((1,112,112,3))], np.array([0.]))
+
+cop = data_loader.create_negative_rgb(val_dir)
+model.predict([cop[0].reshape((1,112,112,3)), cop[1].reshape((1,112,112,3))])
+'''
 if __name__=='__main__':
     print(model)
     
@@ -32,3 +39,4 @@ if __name__=='__main__':
     print('Predicting......')
     preds=model.predict(img)
     print('Predicted:', decode_predictions(preds))
+    '''
