@@ -27,7 +27,7 @@ def contrastive_loss(y_true,y_pred):
 def MobileNet_FT(shape=(128,128,3)):
 	
     model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
-    model.summary()
+    #model.summary()
     
     im_in = Input(shape=shape)
     
@@ -53,7 +53,7 @@ def MobileNet_FT(shape=(128,128,3)):
     
     model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
     
-    model_final.summary()
+    #model_final.summary()
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
@@ -64,7 +64,7 @@ def MobileNet_FT(shape=(128,128,3)):
 def Xception_FT(shape=(112,112,3)):
 	
     model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
-    model.summary()
+    #model.summary()
     
     im_in = Input(shape=shape)
     
@@ -90,7 +90,7 @@ def Xception_FT(shape=(112,112,3)):
     
     model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
     
-    model_final.summary()
+    #model_final.summary()
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
@@ -139,7 +139,7 @@ def SqueezeNet(shape=(112,112,3)):
     
     modelsqueeze=Model(img_input, out)
     
-    modelsqueeze.summary()
+    #modelsqueeze.summary()
     
     im_in = Input(shape=shape)
     
@@ -153,7 +153,7 @@ def SqueezeNet(shape=(112,112,3)):
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
     
-    model_top.summary()
+    #model_top.summary()
     
     im_in1 = Input(shape=shape)
     im_in2 = Input(shape=shape)
@@ -165,7 +165,7 @@ def SqueezeNet(shape=(112,112,3)):
     
     model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
     
-    model_final.summary()
+    #model_final.summary()
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 root='F:\\Datasets'
-#root=
+#root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
@@ -27,9 +27,9 @@ def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324))
     mat_small=img[region[0]:region[0]+region[1],region[2]:region[2]+region[3]]
     return mat_small
     
-def create_single_VGGFACE(file_path,resize=(112,112),minsize=72):
+def create_single_VGGFACE(file_path,resize=(128,128),minsize=64):
     img=Image.open(file_path)
-    img=img.resize(resize)
+    img=img.resize(resize)#.convert()
     img=np.array(img)
     return img
 
@@ -87,8 +87,8 @@ def generator(path,single,batch_size=16,shape=(2,112,112,3),ext='jpg'):
 gen_vap = generator(train_dir,create_single_VAPRGBD,ext='bmp')
 val_gen_vap = generator(val_dir,create_single_VAPRGBD,batch_size=4,ext='bmp')
 
-gen_vgg = generator(train_dir_vgg,create_single_VGGFACE)
-val_gen_vgg = generator(val_dir_vgg,create_single_VGGFACE,batch_size=4)
+gen_vgg = generator(train_dir_vgg,create_single_VGGFACE,shape=(2,128,128,3))
+val_gen_vgg = generator(val_dir_vgg,create_single_VGGFACE,batch_size=4,shape=(2,128,128,3))
 
 if __name__=='__main__':
     pass

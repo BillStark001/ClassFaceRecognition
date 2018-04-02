@@ -18,3 +18,4 @@ alignment/faceswap.py
 alignment/1.jpg
 
 alignment/xjp.jpg
+*.pyc
