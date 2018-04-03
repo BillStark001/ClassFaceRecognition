@@ -12,8 +12,10 @@ import glob
 import matplotlib.pyplot as plt
 from PIL import Image
 
-root='F:\\Datasets'
-#root='C:\\Users\\zhaoj\\Documents\\Datasets'
+import cv2
+
+#root='F:\\Datasets'
+root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
@@ -28,10 +30,21 @@ def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324))
     return mat_small
     
 def create_single_VGGFACE(file_path,resize=(128,128),minsize=64):
+    '''
     img=Image.open(file_path)
     img=img.resize(resize)#.convert()
     img=np.array(img)
     return img
+    '''
+    img = cv2.imread(file_path)
+    h, w, c = img.shape
+    if c == 1:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    elif c != 3:
+        raise ValueError('channels should be 3 or 1!')
+    img = cv2.resize(img, resize)
+    return img
+
 
 def create_positive_rgb(file_path,single,ext='jpg'):
     path=np.random.choice(glob.glob(file_path + '*'))
@@ -61,6 +74,7 @@ def create_negative_rgb(file_path,single,ext='jpg'):
     plt.imshow(img2)
     plt.show()
     '''
+    
     return np.array([img1, img2])
     
 def generator(path,single,batch_size=16,shape=(2,112,112,3),ext='jpg'):

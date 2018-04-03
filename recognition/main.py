@@ -11,8 +11,8 @@ import data_loader
 import numpy as np
 import matplotlib.pyplot as plt
 
-root='F:\\Datasets'
-#root='C:\\Users\\zhaoj\\Documents\\Datasets'
+#root='F:\\Datasets'
+root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir_vap=root+'\\VAPRBGD\\train\\'
 val_dir_vap=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
@@ -36,8 +36,12 @@ def mn_vgg(load=1,savepath='mn.h5'):
     if load==1:
         model.load_weights(savepath)
     else:
-        model.fit_generator(gen, steps_per_epoch=30, epochs=50, validation_data = val_gen, validation_steps=20)
-        model.save(savepath)
+        try:
+            model.fit_generator(gen, steps_per_epoch=20, epochs=10, validation_data = val_gen, validation_steps=20)
+        except KeyboardInterrupt:
+            print('sdfdsfsdf')
+        finally:
+            model.save(savepath)
     return model
 
 def evaluate_vap(model,time=100):
@@ -79,6 +83,8 @@ def evaluate_vgg(model,time=300):
         cn.append(c2)
         cs.append(abs(c2-c1))
         cs.sort()
+        cp.sort()
+        cn.sort()
     
     plt.plot(range(time),cp)
     plt.plot(range(time),cn)
@@ -86,5 +92,7 @@ def evaluate_vgg(model,time=300):
     plt.scatter(range(time),cs,s=1)
     plt.show()
     
-model=sn_vap()
-evaluate_vap(model)
+#model=sn_vap()
+#evaluate_vap(model)
+
+model=mn_vgg(0)
