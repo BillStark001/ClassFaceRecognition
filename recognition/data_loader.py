@@ -14,8 +14,8 @@ from PIL import Image
 
 import cv2
 
-#root='F:\\Datasets'
-root='C:\\Users\\zhaoj\\Documents\\Datasets'
+root='F:\\Datasets'
+#root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'

@@ -11,8 +11,8 @@ import data_loader
 import numpy as np
 import matplotlib.pyplot as plt
 
-#root='F:\\Datasets'
-root='C:\\Users\\zhaoj\\Documents\\Datasets'
+root='F:\\Datasets'
+#root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir_vap=root+'\\VAPRBGD\\train\\'
 val_dir_vap=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
@@ -37,11 +37,26 @@ def mn_vgg(load=1,savepath='mn.h5'):
         model.load_weights(savepath)
     else:
         try:
-            model.fit_generator(gen, steps_per_epoch=20, epochs=10, validation_data = val_gen, validation_steps=20)
+            model.fit_generator(gen, steps_per_epoch=30, epochs=15, validation_data = val_gen, validation_steps=20)
         except KeyboardInterrupt:
-            print('sdfdsfsdf')
+            print('KeyboardInterrupt Received. Weights Saved.')
         finally:
-            model.save(savepath)
+            model.save_weights(savepath)
+    return model
+
+def xc_vgg(load=1,savepath='xc.h5'):
+    gen=data_loader.gen_vgg
+    val_gen=data_loader.val_gen_vgg
+    model=models.XCeption_FT()
+    if load==1:
+        model.load_weights(savepath)
+    else:
+        try:
+            model.fit_generator(gen, steps_per_epoch=20, epochs=20, validation_data = val_gen, validation_steps=20)
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt Received. Weights Saved.')
+        finally:
+            model.save_weights(savepath)
     return model
 
 def evaluate_vap(model,time=100):
@@ -96,3 +111,4 @@ def evaluate_vgg(model,time=300):
 #evaluate_vap(model)
 
 model=mn_vgg(0)
+evaluate_vgg(model)

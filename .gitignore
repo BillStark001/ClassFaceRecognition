@@ -20,3 +20,5 @@ alignment/1.jpg
 alignment/xjp.jpg
 *.pyc
 recognition/mn.h5
+*.pyc
+*.pyc
