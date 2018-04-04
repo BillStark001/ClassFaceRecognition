@@ -8,11 +8,17 @@ Update: 2018/02/23
 import vstream.cv as vst
 import face_detect.cv as detect
 import alignment.main as align
+import recognition.interface as rec
 #OTHERS
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import threading
+
+#root='F:\\Datasets\\TestFace\\'
+root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
+data_dir=root+'\\registered\\'
+test_dir=root+'\\test\\'
 
 Input=vst.VStream((1,0),(1280,720))
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -41,12 +47,17 @@ def detectAndDraw(image=Input.getCurrentIMG()):
 def detectAndDraw(image=Input.getCurrentIMG()):
     
     rects,faces=align.separateFace(image)
-    for l in rects:
+    for i in range(len(rects)):
+        l,f=rects[i],faces[i]
         x,y,w,h=l[0][0],l[0][1],l[1][0],l[1][1]
         cv2.rectangle(image,(x,y),(w,h),(0,255,0),1)
         bias=5
-        cv2.putText(image,'test',(x+bias,y-bias),font,1,(255,0,255),2)
-        cv2.putText(image,str(0x0f37),(x+bias,y+h-bias),font,1,(255,255,0),1)
+        
+        maxn,score,ans=rec.enumPath(f,data_dir)
+        print(ans)
+        
+        cv2.putText(image,maxn,(x+bias,y-bias),font,1,(255,0,255),2)
+        cv2.putText(image,str(score),(x+bias,y+h-bias),font,1,(255,255,0),1)
     if faces!=[]:
         cv2.imshow('Aligned',faces[0])
     

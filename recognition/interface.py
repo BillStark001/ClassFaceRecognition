@@ -35,13 +35,15 @@ def calculateDis(img1,img2):
     return model.predict([img1.reshape((1,128,128,3)),img2.reshape((1,128,128,3))])[0,0]
 
 def enumPath(img,path,ends='.jpg'):
+    print('Enum Path...')
     maxn,score='',100.
     ans={}
     pdir=os.listdir(path)
     for p in pdir:
         if not p.endswith(ends):pdir.remove(p)
     for p in pdir:
-        i=calculateDis(img1,loadImage(path+p))
+        print(p)
+        i=calculateDis(img,loadImage(path+p))
         ans[p.split('.')[0]]=i
         if score>i:
             score=i
