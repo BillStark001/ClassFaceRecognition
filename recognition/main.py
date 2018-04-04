@@ -83,7 +83,7 @@ def evaluate_vap(model,time=100):
     plt.scatter(range(time),cs,s=1)
     plt.show()
     
-def evaluate_vgg(model,time=300):
+def evaluate_vgg(model,time=50):
     cp,cn,cs=[],[],[]
     
     for i in range(time):
@@ -108,7 +108,7 @@ def evaluate_vgg(model,time=300):
     plt.show()
     
 def main():
-    model=mn_vgg(0)
+    model=mn_vgg()
     evaluate_vgg(model)
     
 if __name__=='__main__':
