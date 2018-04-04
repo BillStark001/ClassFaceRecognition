@@ -108,7 +108,7 @@ def evaluate_vgg(model,time=300):
     plt.show()
     
 def main():
-    model=mn_vgg(0)
+    model=mn_vgg()
     evaluate_vgg(model)
     
 if __name__=='__main__':
