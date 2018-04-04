@@ -39,7 +39,7 @@ def contrastive_loss(y_true,y_pred):
     return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
 
 def lmcl(y_true,y_pred):
-    
+    pass
 
 def MobileNet_FT(shape=(128,128,3)):
 	

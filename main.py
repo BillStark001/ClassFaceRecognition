@@ -15,7 +15,9 @@ import matplotlib.pyplot as plt
 import threading
 
 Input=vst.VStream((1,0),(1280,720))
+font = cv2.FONT_HERSHEY_SIMPLEX
 
+'''
 def detectAndDraw(image=Input.getCurrentIMG()):
     coors=detect.detectFace(image)
     image=detect.drawFaceCoor(image,coors)
@@ -34,6 +36,20 @@ def detectAndDraw(image=Input.getCurrentIMG()):
             cv2.imshow('Aligned',aligned_img)
 
     #detect.saveFaces(detect.splitbyCoor(image,coors,bias=20))
+    return image
+'''
+def detectAndDraw(image=Input.getCurrentIMG()):
+    
+    rects,faces=align.separateFace(image)
+    for l in rects:
+        x,y,w,h=l[0][0],l[0][1],l[1][0],l[1][1]
+        cv2.rectangle(image,(x,y),(w,h),(0,255,0),1)
+        bias=5
+        cv2.putText(image,'test',(x+bias,y-bias),font,1,(255,0,255),2)
+        cv2.putText(image,str(0x0f37),(x+bias,y+h-bias),font,1,(255,255,0),1)
+    if faces!=[]:
+        cv2.imshow('Aligned',faces[0])
+    
     return image
 
 def showDetect(Wait=10,Key='q'):

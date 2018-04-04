@@ -107,8 +107,9 @@ def evaluate_vgg(model,time=300):
     plt.scatter(range(time),cs,s=1)
     plt.show()
     
-#model=sn_vap()
-#evaluate_vap(model)
-
-model=mn_vgg(0)
-evaluate_vgg(model)
+def main():
+    model=mn_vgg(0)
+    evaluate_vgg(model)
+    
+if __name__=='__main__':
+    main()
