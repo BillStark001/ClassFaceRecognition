@@ -116,14 +116,43 @@ def align(img,landmarks):
     aligned_img = warp_im(img, M, (128,128,3))
     return aligned_img
 
-if __name__=='__main__':
-    img = io.imread("1.jpg")
-    dets, landmarks=predict(img)
+def separateFace(img):
+    landmarks=[]
+    rects=[]
+    dets = detector(img, 1)
     for i, d in enumerate(dets):
-        cv2.rectangle(img,(d.left(),d.top()),(d.right(),d.bottom()),(255,0,0),1)
+        rects.append([[d.left(),d.top()],[d.right(),d.bottom()]])
+        shape = predictor(img, d) 
+        landmark = np.matrix([[p.x, p.y] for p in shape.parts()])
+        landmarks.append(landmark)
+    faces=[]
+    for lm in landmarks:
+        i=align(img,lm)
+        faces.append(i)
+    return rects, faces
+
+if __name__=='__main__':
+    img=io.imread("1.jpg")
+    dets,landmarks=predict(img)
+    rects,faces=separateFace(img)
+    '''
+    for i, d in enumerate(dets):print(i,d)
+    for landmark in landmarks:
+        plt.imshow(align(img,landmark))
+        plt.show()  
+    '''
+    for f in faces:
+        plt.imshow(f)
+        plt.show() 
+    for r in rects:print(r)
+    
+    for i, d in enumerate(dets):
+        cv2.rectangle(img,(d.left(),d.top()),(d.right(),d.bottom()),(255,0,0),1)    
+
     for landmark in landmarks:
         for l in landmark:
             cv2.rectangle(img,(l[:,0],l[:,1]),(l[:,0]+1,l[:,1]+1),(0,0,255),1)
     plt.imshow(img)
     plt.show()
+
 
