@@ -4,3 +4,4 @@ shape_predictor_68_face_landmarks.dat
 *.pyc
 recognition/mn.h5
 *.pyc
+*.h5

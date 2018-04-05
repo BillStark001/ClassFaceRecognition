@@ -14,6 +14,8 @@ from keras import backend as K
 from keras.applications.xception import Xception
 from keras.applications.mobilenet import MobileNet
 
+print('Recognition Models Loaded.')
+
 def lr_schedule(epoch):
     lr = 1e-3
     if epoch > 20:

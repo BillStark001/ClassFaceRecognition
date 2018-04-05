@@ -9,6 +9,7 @@ import vstream.cv as vst
 import face_detect.cv as detect
 import alignment.main as align
 import recognition.interface as rec
+print('Import Finished.')
 #OTHERS
 import cv2
 import numpy as np
@@ -54,10 +55,11 @@ def detectAndDraw(image=Input.getCurrentIMG()):
         bias=5
         
         maxn,score,ans=rec.enumPath(f,data_dir)
+        print('Face {}: {}, score={}.'.format(i,maxn,score))
         print(ans)
         
         cv2.putText(image,maxn,(x+bias,y-bias),font,1,(255,0,255),2)
-        cv2.putText(image,str(score),(x+bias,y+h-bias),font,1,(255,255,0),1)
+        cv2.putText(image,str(score),(x+bias,h-bias),font,1,(255,255,0),1)
     if faces!=[]:
         cv2.imshow('Aligned',faces[0])
     
@@ -65,10 +67,13 @@ def detectAndDraw(image=Input.getCurrentIMG()):
 
 def showDetect(Wait=10,Key='q'):
     while(1):
-        image=Input.getCurrentIMG()
-        cv2.imshow('Capturing',detectAndDraw(image))
-        
-        if cv2.waitKey(Wait)&0xFF==ord(Key):break
+        try:
+            image=Input.getCurrentIMG()
+            cv2.imshow('Capturing',detectAndDraw(image))
+            if cv2.waitKey(Wait)&0xFF==ord(Key):break
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt Received. Recognition Aborted.')
+            break
     
 if __name__=='__main__':
     Input.startCapture()
