@@ -66,23 +66,19 @@ def MobileNet_FT(shape=(128,128,3)):
 	
     return model_final
     
-def Xception_FT(shape=(128,128,3)):
-	
-    model=Xception(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
-    #model.summary()
+def Siamase(model,shape=(128,128,3)):
     
     im_in = Input(shape=shape)
     
     x1 = model(im_in)
     x1 = Flatten()(x1)
-    x1 = Dense(512, activation="relu")(x1)
+    x1 = Dense(512, activation="tanh")(x1)
     x1 = Dropout(0.2)(x1)
     
     feat_x = Dense(128, activation="linear")(x1)
     feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
-    
     #model_top.summary()
     
     im_in1 = Input(shape=shape)
@@ -99,7 +95,7 @@ def Xception_FT(shape=(128,128,3)):
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
-    model_final.compile(optimizer=adam, loss=contrastive_loss)
+    model_final.compile(optimizer=sgd, loss=contrastive_loss)
 	
     return model_final
 
