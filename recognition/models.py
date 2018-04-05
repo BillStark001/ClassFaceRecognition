@@ -28,76 +28,43 @@ def contrastive_loss(y_true,y_pred):
 
 def lmcl(y_true,y_pred):
     pass
+    
+def Siamase1(model,shape=(128,128,3)):
+    
+    im_in = Input(shape=shape)
+    
+    x1 = model(im_in)
+    x1 = Flatten()(x1)
+    x1 = Dense(512, activation="tanh")(x1)
+    x1 = Dropout(0.5)(x1)
+    
+    feat_x = Dense(128, activation="linear")(x1)
+    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
+    
+    model_top = Model(inputs = [im_in], outputs = feat_x)
+    #model_top.summary()
+    
+    im_in1 = Input(shape=shape)
+    im_in2 = Input(shape=shape)
+    
+    feat_x1 = model_top(im_in1)
+    feat_x2 = model_top(im_in2)
+    
+    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
+    
+    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
+    #model_final.summary()
+    
+    adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.001, momentum=0.9)
+    model_final.compile(optimizer=sgd, loss=contrastive_loss)
+	
+    return model_final
 
 def MobileNet_FT(shape=(128,128,3)):
-	
     model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
     #model.summary()
-    
-    im_in = Input(shape=shape)
-    
-    x1 = model(im_in)
-    x1 = Flatten()(x1)
-    x1 = Dense(512, activation="tanh")(x1)
-    x1 = Dropout(0.2)(x1)
-    
-    feat_x = Dense(128, activation="linear")(x1)
-    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
-    
-    model_top = Model(inputs = [im_in], outputs = feat_x)
-    
-    #model_top.summary()
-    
-    im_in1 = Input(shape=shape)
-    im_in2 = Input(shape=shape)
-    
-    feat_x1 = model_top(im_in1)
-    feat_x2 = model_top(im_in2)
-    
-    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
-    
-    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
-    
-    #model_final.summary()
-    
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    model_final.compile(optimizer=sgd, loss=contrastive_loss)
-	
-    return model_final
-    
-def Siamase(model,shape=(128,128,3)):
-    
-    im_in = Input(shape=shape)
-    
-    x1 = model(im_in)
-    x1 = Flatten()(x1)
-    x1 = Dense(512, activation="tanh")(x1)
-    x1 = Dropout(0.2)(x1)
-    
-    feat_x = Dense(128, activation="linear")(x1)
-    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
-    
-    model_top = Model(inputs = [im_in], outputs = feat_x)
-    #model_top.summary()
-    
-    im_in1 = Input(shape=shape)
-    im_in2 = Input(shape=shape)
-    
-    feat_x1 = model_top(im_in1)
-    feat_x2 = model_top(im_in2)
-    
-    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
-    
-    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
-    
-    #model_final.summary()
-    
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    model_final.compile(optimizer=sgd, loss=contrastive_loss)
-	
-    return model_final
+    return Siamase1(model,shape=shape)
 
 def fire(x, squeeze=16, expand=64):
     x = Convolution2D(squeeze, (1,1), padding='valid')(x)
@@ -139,39 +106,8 @@ def SqueezeNet(shape=(112,112,3)):
     out = Activation('relu')(x)
     
     modelsqueeze=Model(img_input, out)
-    
     #modelsqueeze.summary()
-    
-    im_in = Input(shape=shape)
-    
-    x1 = modelsqueeze(im_in)
-    x1 = Flatten()(x1)
-    x1 = Dense(512, activation="relu")(x1)
-    x1 = Dropout(0.2)(x1)
-    
-    feat_x = Dense(128, activation="linear")(x1)
-    feat_x = Lambda(lambda  x: K.l2_normalize(x,axis=1))(feat_x)
-    
-    model_top = Model(inputs = [im_in], outputs = feat_x)
-    
-    #model_top.summary()
-    
-    im_in1 = Input(shape=shape)
-    im_in2 = Input(shape=shape)
-    
-    feat_x1 = model_top(im_in1)
-    feat_x2 = model_top(im_in2)
-    
-    lambda_merge = Lambda(euclidean_distance)([feat_x1, feat_x2])
-    
-    model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
-    
-    #model_final.summary()
-    
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    model_final.compile(optimizer=adam, loss=contrastive_loss)
-    return model_final
+    return Siamase1(modelsqueeze,shape=shape)
 	
 def main():
     model=MobileNet_FT()

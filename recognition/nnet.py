@@ -64,7 +64,7 @@ def mn_vgg(load=1,savepath='mn.h5'):
         print('Weights Loaded.')
     else:
         try:
-            model.fit_generator(gen, steps_per_epoch=40, epochs=75, validation_data = val_gen, validation_steps=30, callbacks=callbacks())
+            model.fit_generator(gen, steps_per_epoch=40, epochs=30, validation_data = val_gen, validation_steps=30, callbacks=callbacks())
         except KeyboardInterrupt:
             print('KeyboardInterrupt Received. Weights Saved.')
         finally:
