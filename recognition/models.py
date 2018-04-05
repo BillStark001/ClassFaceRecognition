@@ -16,20 +16,6 @@ from keras.applications.mobilenet import MobileNet
 
 print('Recognition Models Loaded.')
 
-def lr_schedule(epoch):
-    lr = 1e-3
-    if epoch > 20:
-        lr *= 0.5e-3
-    '''
-    elif epoch > 160:
-        lr *= 1e-3
-    elif epoch > 120:
-        lr *= 1e-2
-    elif epoch > 80:
-        lr *= 1e-1
-    '''
-    return lr
-
 def euclidean_distance(inputs):
     assert len(inputs) == 2, \
         'Euclidean distance needs 2 inputs, %d given' % len(inputs)

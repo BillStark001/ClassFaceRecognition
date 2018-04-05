@@ -1,7 +1,3 @@
-alignment/shape_predictor_68_face_landmarks.dat
-shape_predictor_68_face_landmarks.dat
+*.dat
 *.txt
 *.pyc
-recognition/mn.h5
-*.pyc
-*.h5
