@@ -57,7 +57,7 @@ def Siamase1(model,shape=(128,128,3)):
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
-    model_final.compile(optimizer=adam, loss=contrastive_loss)
+    model_final.compile(optimizer=sgd, loss=contrastive_loss)
 	
     return model_final
 

@@ -30,10 +30,10 @@ print('Recognition Networks Loaded.')
 def callbacks():
     def lr_schedule(epoch):
         lr = 1e-3
-        if epoch>100:lr*=0.5e-3
-        elif epoch>70:lr*=1e-3
-        elif epoch>35:lr*=1e-2
-        elif epoch>15:lr*=1e-1
+        if epoch>75:lr*=0.5e-3
+        elif epoch>50:lr*=1e-3
+        elif epoch>30:lr*=1e-2
+        elif epoch>10:lr*=1e-1
         print('Learning rate: ', lr)
         return lr
     
@@ -64,22 +64,7 @@ def mn_vgg(load=1,savepath='mn.h5'):
         print('Weights Loaded.')
     else:
         try:
-            model.fit_generator(gen, steps_per_epoch=40, epochs=50, validation_data = val_gen, validation_steps=30, callbacks=callbacks())
-        except KeyboardInterrupt:
-            print('KeyboardInterrupt Received. Weights Saved.')
-        finally:
-            model.save_weights(savepath)
-    return model
-
-def xc_vgg(load=1,savepath='xc.h5'):
-    gen=data_loader.gen_vgg
-    val_gen=data_loader.val_gen_vgg
-    model=models.XCeption_FT()
-    if load==1:
-        model.load_weights(savepath)
-    else:
-        try:
-            model.fit_generator(gen, steps_per_epoch=20, epochs=20, validation_data = val_gen, validation_steps=20)
+            model.fit_generator(gen, steps_per_epoch=40, epochs=80, validation_data = val_gen, validation_steps=30, callbacks=callbacks())
         except KeyboardInterrupt:
             print('KeyboardInterrupt Received. Weights Saved.')
         finally:
@@ -135,7 +120,7 @@ def evaluate_vgg(model,time=100):
     plt.show()
     
 def main():
-    model=mn_vgg()
+    model=mn_vgg(0)
     evaluate_vgg(model)
     
 if __name__=='__main__':
