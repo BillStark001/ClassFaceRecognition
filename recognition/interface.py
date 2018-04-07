@@ -22,7 +22,7 @@ import cv2
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
 data_dir=root+'\\registered\\'
 test_dir=root+'\\test\\'
-model=nnet.mn_vgg()
+model=nnet.mn_vgg(savepath='recognition/mn.h5')
 
 print('Recognition Interface Loaded.')
 
