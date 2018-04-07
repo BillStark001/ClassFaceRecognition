@@ -32,11 +32,11 @@ print('Recognition Networks Loaded.')
 
 def callbacks():
     def lr_schedule(epoch):
-        lr = 1e-2
-        if epoch>70:lr*=0.5e-3
-        elif epoch>50:lr*=1e-3
-        elif epoch>35:lr*=1e-2
-        elif epoch>17:lr*=1e-1
+        lr = 1e-3
+        if epoch>80:lr*=0.5e-3
+        elif epoch>60:lr*=1e-3
+        elif epoch>40:lr*=1e-2
+        elif epoch>20:lr*=1e-1
         print('Learning rate: ', lr)
         return lr
     
@@ -85,14 +85,14 @@ def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
     else:
         try:
             #pass
-            model.fit_generator(gen, steps_per_epoch=30, epochs=80, validation_data = val_gen, validation_steps=20, callbacks=callbacks())
+            model.fit_generator(gen, steps_per_epoch=30, epochs=100, validation_data = val_gen, validation_steps=20, callbacks=callbacks())
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
         finally:
             model.save_weights(savepath)
     return model
 
-def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500):
+def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
     cp,cn,cs=[],[],[]
     val_dir=glob.glob(val_dir+'*')
     
@@ -103,7 +103,7 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500):
         c1=model.predict([cop[0].reshape(shape), cop[1].reshape(shape)])[0,0]
         cop = data_loader.create_pair_rgb(pathn,single,form)
         c2=model.predict([cop[0].reshape(shape), cop[1].reshape(shape)])[0,0]
-        print('Group %d: Positive: %.3f - Negative: %.3f'%(i+1,c1,c2))
+        if i%50==0:print('Group %d: Positive: %.3f - Negative: %.3f'%(i+1,c1,c2))
         
         cp.append(c1)
         cn.append(c2)
@@ -111,17 +111,17 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500):
         
     cs.sort()
     cp.sort()
-    cn.sort(reverse=False)
+    cn.sort(reverse=True)
 
-    plt.scatter(range(time),cp,s=1)
-    plt.scatter(range(time),cn,s=1)
-    plt.scatter(range(time),cs,s=0.3)
+    plt.scatter(range(time),cp,s=1e-1)
+    plt.scatter(range(time),cn,s=1e-1)
+    plt.scatter(range(time),cs,s=3e-2)
     plt.show()
     
 def main():
-    model=mn_vgg(0)
-    evaluate_cl(model,val_dir_vgg,data_loader.create_single_VGGFACE)
     model=mn_vgg2()
+    evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
+    model=mn_vgg2(opt='adam',savepath='mn1.h5')
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     
 if __name__=='__main__':

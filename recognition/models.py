@@ -93,7 +93,8 @@ def Siamase1(model,opt='sgd',shape=(128,128,3)):
     x1 = model(im_in)
     x1 = GlobalAveragePooling2D()(x1)
     #x1 = Flatten()(x1)
-    #x1 = Dense(512, activation="tanh")(x1)
+    x1 = Dense(512, activation="tanh")(x1)
+    x1 = Dense(512, activation="tanh")(x1)
     x1 = Dropout(0.2)(x1)
     
     feat_x = Dense(128, activation="tanh")(x1)
