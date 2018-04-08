@@ -14,16 +14,14 @@ from PIL import Image
 
 import cv2
 
-root='F:\\Datasets'
-#root='C:\\Users\\zhaoj\\Documents\\Datasets'
+#root='F:\\Datasets'
+root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
 val_dir_vgg=root+'\\VGGFACE\\val\\'
 train_dir_vgg2=root+'\\VGGFACE2\\train\\'
 val_dir_vgg2=root+'\\VGGFACE2\\val\\'
-
-
 
 def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324)):
     img=Image.open(file_path)
@@ -96,12 +94,25 @@ gen_vgg2 = generator(train_dir_vgg2,create_single_VGGFACE,batch_size=32)
 val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=16)
 
 #AM-Softmax/LMCL
-
-#Not Finished
-def singleGenerator(path,single=create_single_VGGFACE,ext='jpg'):
+def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4):
     path=glob.glob(path+'*')
+    #print('## path:', path)
     while 1:
+        n=np.random.randint(len(path),size=batch_size)
+        #print(n)
         x,y=[],[]
+        for p in n:
+            X=single(np.random.choice(glob.glob(path[p]+"/*."+ext)),resize=size)
+            #print(X.astype(np.float64)/256)
+            x.append(X)
+            onehot=np.zeros((len(path)))
+            onehot[p]=1
+            y.append(onehot)
+        yield np.array(x),np.array(y,dtype='uint8')
 
+sg_vgg2=singleGenerator(train_dir_vgg2,batch_size=32)
+sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8)
+        
 if __name__=='__main__':
+    print(next(singleGenerator(val_dir_vgg2)))
     pass

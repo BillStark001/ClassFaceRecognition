@@ -30,6 +30,7 @@ cb_dir=root+'\\callbacks'
 
 print('Recognition Networks Loaded.')
 
+#Contrastive Loss
 def callbacks():
     def lr_schedule(epoch):
         lr = 1e-3
@@ -118,11 +119,34 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
     plt.scatter(range(time),cs,s=3e-2)
     plt.show()
     
+#AM-Softmax
+def mn_vgg2_am(load=1,opt='sgd',savepath='mn_am.h5'):
+    gen=data_loader.sg_vgg2
+    val_gen=data_loader.sg_vgg2_val
+    model=models.MobileNet_AM(opt=opt)
+    model.summary()
+    print('Fine_Tuned MobileNet loaded, using VGGFace2 datasets and AM-Softmax loss.')
+    if load==1:
+        model.load_weights(savepath)
+        print('Weights loaded.')
+    else:
+        try:
+            #pass
+            model.fit_generator(gen, steps_per_epoch=30, epochs=100, validation_data = val_gen, validation_steps=20, callbacks=callbacks())
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt received. Weights saved.')
+        finally:
+            model.save_weights(savepath)
+    return model
+    
 def main():
-    model=mn_vgg2()
+    '''
+    model=mn_vgg2(1)
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
-    model=mn_vgg2(opt='adam',savepath='mn1.h5')
+    model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
+    '''
+    model=mn_vgg2_am(0)
     
 if __name__=='__main__':
     main()

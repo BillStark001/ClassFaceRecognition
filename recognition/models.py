@@ -64,8 +64,7 @@ class AMSoftmax(Layer):
         e_psi = K.exp(self.s * psi)
         sum_x = K.sum(e_costheta, axis=-1, keepdims=True)
 
-        temp = e_psi - e_costheta
-        temp = temp + sum_x
+        temp = e_psi + sum_x - e_costheta
 
         output = e_psi / temp
         return output
@@ -134,7 +133,7 @@ def MobileNet_AM(opt='sgd',shape=(128,128,3)):
     model=Dropout(0.2)(model)
     model=AMSoftmax(10,10,0.35)(model)
     model=Model(inputs=im_in,outputs=model)
-    model.summary()
+    #model.summary()
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
