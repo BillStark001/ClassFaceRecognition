@@ -26,7 +26,7 @@ train_dir_vgg=root+'\\VGGFACE\\train\\'
 val_dir_vgg=root+'\\VGGFACE\\val\\'
 train_dir_vgg2=root+'\\VGGFACE2\\train\\'
 val_dir_vgg2=root+'\\VGGFACE2\\val\\'
-cb_dir=root+'\\callbacks'
+cb_dir=root+'\\callbacks.h5'
 
 print('Recognition Networks Loaded.')
 
@@ -41,7 +41,7 @@ def callbacks():
         print('Learning rate: ', lr)
         return lr
     
-    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
+    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acccc',verbose=1,save_best_only=True)
     lr_scheduler = LearningRateScheduler(lr_schedule)
     lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=0.5e-6)
     
@@ -120,18 +120,34 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
     plt.show()
     
 #LMCL
+def callbacks_lmcl():
+    def lr_schedule(epoch):
+        lr = 1e-3
+        if epoch>140:lr*=0.5e-3
+        elif epoch>100:lr*=1e-3
+        elif epoch>70:lr*=1e-2
+        elif epoch>30:lr*=1e-1
+        print('Learning rate: ', lr)
+        return lr
+    
+    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acccc',verbose=1,save_best_only=True)
+    lr_scheduler = LearningRateScheduler(lr_schedule)
+    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=0.5e-6)
+    
+    return [checkpoint,lr_reducer,lr_scheduler]
+
 def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5'):
     gen=data_loader.sg_vgg2
     val_gen=data_loader.sg_vgg2_val
     model=models.MobileNet_LMCL(opt=opt)
-    model.summary()
+    #model.summary()
     print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset and LMCL loss.')
     if load==1:
         model.load_weights(savepath)
         print('Weights loaded.')
     else:
         try:
-            model.fit_generator(gen, steps_per_epoch=30, epochs=100, 
+            model.fit_generator(gen, steps_per_epoch=30, epochs=200, 
                                 validation_data = val_gen, validation_steps=20, 
                                 callbacks=callbacks())
         except KeyboardInterrupt:
