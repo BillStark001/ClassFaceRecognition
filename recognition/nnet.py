@@ -79,10 +79,10 @@ def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
     gen=data_loader.gen_vgg2
     val_gen=data_loader.val_gen_vgg2
     model=models.MobileNet_FT(opt=opt)
-    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset.')
+    
     if load==1:
+        print('Loading weights...')
         model.load_weights(savepath)
-        print('Weights loaded.')
     else:
         try:
             #pass
@@ -91,6 +91,8 @@ def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
             print('KeyboardInterrupt received. Weights saved.')
         finally:
             model.save_weights(savepath)
+            
+    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset.')
     return model
 
 def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
@@ -123,7 +125,7 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
 def callbacks_lmcl():
     def lr_schedule(epoch):
         lr = 1e-3
-        if epoch>140:lr*=0.5e-3
+        if epoch>140:lr*=5e-4
         elif epoch>100:lr*=1e-3
         elif epoch>70:lr*=1e-2
         elif epoch>30:lr*=1e-1
@@ -132,30 +134,40 @@ def callbacks_lmcl():
     
     checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acccc',verbose=1,save_best_only=True)
     lr_scheduler = LearningRateScheduler(lr_schedule)
-    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=0.5e-6)
+    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=5e-7)
     
     return [checkpoint,lr_reducer,lr_scheduler]
 
 def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5'):
     gen=data_loader.sg_vgg2
     val_gen=data_loader.sg_vgg2_val
-    model=models.MobileNet_LMCL(opt=opt)
-    #model.summary()
-    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset and LMCL loss.')
-    if load==1:
-        model.load_weights(savepath)
-        print('Weights loaded.')
-    else:
+    
+    if load!=1:
+        model=models.MobileNet_LMCL(opt=opt)
         try:
             model.fit_generator(gen, steps_per_epoch=30, epochs=200, 
                                 validation_data = val_gen, validation_steps=20, 
-                                callbacks=callbacks())
+                                callbacks=callbacks_lmcl())
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
         finally:
             model.save_weights(savepath)
-    return model
     
+    print('Loading weights...')
+    model=models.MobileNet_LMCL(opt=opt,output_fc=True)
+    model.load_weights(savepath,by_name=True)
+    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset and LMCL loss.')
+    #model.summary()
+    return model
+
+'''
+def evaluate_lmcl(model,val_dir,single,form='jpg',shape=(1,128,128,3)):
+    val_dir=glob.glob(val_dir+'*')
+    
+    for d in val_dir:
+        d=np.random.choice(glob.glob(d'\\*.'+form))
+'''
+
 def main():
     '''
     model=mn_vgg2(1)
@@ -163,7 +175,8 @@ def main():
     model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     '''
-    model=mn_vgg2_lmcl(0)
+    model=mn_vgg2_lmcl(1)
+    #evaluate_lmcl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     
 if __name__=='__main__':
     main()

@@ -5,16 +5,13 @@ Created on Mon Mar  5 21:26:16 2018
 """
 
 from keras.models import Model
-from keras.layers import Dense, Activation, Flatten, Dropout, Lambda, ELU, concatenate, GlobalAveragePooling2D, Input, BatchNormalization, SeparableConv2D, Subtract
+from keras.layers import Activation, Flatten, Dense, Dropout, Lambda, concatenate, GlobalAveragePooling2D, Input, BatchNormalization
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.optimizers import Adam, SGD
 from keras.layers import activations, initializers, regularizers, constraints
 from keras import backend as K
 from keras.applications.mobilenet import MobileNet
-from keras.engine import InputSpec
-from keras.engine.topology import Layer
 import tensorflow as tf
-import numpy as np
 
 print('Recognition Models Loaded.')
 
@@ -97,7 +94,7 @@ def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=400):
         model = Model(im_in, lmcl_out)
         model.compile(optimizer=opt_dict[opt], loss=lmcl_loss, metrics=['acc'])
     else:
-        model = Model(im_in, fc1_out)
+        model = Model(im_in, fc_out)
         
     #model.summary()
     return model

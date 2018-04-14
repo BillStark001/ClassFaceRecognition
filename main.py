@@ -12,9 +12,6 @@ import recognition.interface as rec
 print('Import Finished.')
 #OTHERS
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import threading
 
 #root='F:\\Datasets\\TestFace\\'
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
@@ -54,7 +51,8 @@ def detectAndDraw(image=Input.getCurrentIMG()):
         cv2.rectangle(image,(x,y),(w,h),(0,255,0),1)
         bias=5
         
-        maxn,score,ans=rec.enumPath(f,data_dir)
+        #maxn,score,ans=rec.enumPath(f,data_dir,mode='cons')
+        maxn,score,ans=rec.enumPath(f,data_dir,mode='lmcl')
         print('Face {}: {}, score={}.'.format(i,maxn,score))
         print(ans)
         

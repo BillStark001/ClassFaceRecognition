@@ -10,12 +10,11 @@ Here we create some functions that will create the input couple for our model, b
 import numpy as np
 import glob
 import matplotlib.pyplot as plt
-from PIL import Image
 
 import cv2
 
-#root='F:\\Datasets'
-root='C:\\Users\\zhaoj\\Documents\\Datasets'
+root='F:\\Datasets'
+#root='C:\\Users\\zhaoj\\Documents\\Datasets'
 train_dir=root+'\\VAPRBGD\\train\\'
 val_dir=root+'\\VAPRBGD\\val\\'
 train_dir_vgg=root+'\\VGGFACE\\train\\'
@@ -24,22 +23,17 @@ train_dir_vgg2=root+'\\VGGFACE2\\train\\'
 val_dir_vgg2=root+'\\VGGFACE2\\val\\'
 
 def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324)):
-    img=Image.open(file_path)
-    img.thumbnail(thumbnail)
-    img=np.array(img)[:,:,:3]
-    #print(img.shape)
+    img=cv2.imread(file_path)
+    img=cv2.resize(img,thumbnail)
+    img=img[:,:,:3]
     mat_small=img[region[0]:region[0]+region[1],region[2]:region[2]+region[3]]
     return mat_small
     
 def create_single_VGGFACE(file_path,resize=(128,128),minsize=64):
     img = cv2.imread(file_path)
     h, w, c = img.shape
-    if c == 1:
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    elif c != 3:
-        raise ValueError('Channels should be 3 or 1, however %d recieved!'%(c))
-    else:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    if c == 1: img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    else: img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     #img = cv2.resize(img, resize)
     return img
 

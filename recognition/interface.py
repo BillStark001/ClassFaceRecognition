@@ -13,16 +13,14 @@ except ImportError as e:
 
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-from PIL import Image
-
 import cv2
 
 #root='F:\\Datasets\\TestFace\\'
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
 data_dir=root+'\\registered\\'
 test_dir=root+'\\test\\'
-model=nnet.mn_vgg(savepath='recognition/mn.h5')
+model_cons=nnet.mn_vgg2(savepath='recognition/mn2.h5')
+model_lmcl=nnet.mn_vgg2_lmcl(savepath='recognition/mn_lmcl.h5')
 
 print('Recognition Interface Loaded.')
 
@@ -36,10 +34,19 @@ def loadImage(file_path,resize=(128,128)):
     img = cv2.resize(img, resize)
     return img
 
-def calculateDis(img1,img2):
-    return model.predict([img1.reshape((1,128,128,3)),img2.reshape((1,128,128,3))])[0,0]
+def calculateDis(img1,img2,mode='cons'):
+    if mode=='cons':
+        return model_cons.predict([img1.reshape((1,128,128,3)),img2.reshape((1,128,128,3))])[0,0]
+    elif mode=='lmcl':
+        a=model_lmcl.predict(img1.reshape((1,128,128,3)))
+        b=model_lmcl.predict(img2.reshape((1,128,128,3)))
+        c=np.dot(a,b.T)
+        d1=np.dot(a,a.T)**0.5
+        d2=np.dot(b,b.T)**0.5
+        e=(c/(d1*d2)+1)/2
+        return 1-e
 
-def enumPath(img,path,ends='.jpg'):
+def enumPath(img,path,ends='.jpg',mode='cons'):
     print('Enum Path: {}...'.format(path))
     maxn,score='',100.
     ans={}
@@ -51,7 +58,7 @@ def enumPath(img,path,ends='.jpg'):
     for p in pdir:
         p0=p.split('.')[0]
         print(p)
-        i=calculateDis(img,loadImage(path+p))
+        i=calculateDis(img,loadImage(path+p),mode)
         time[p0]+=1
         if time[p0]==1:
             ans[p0]=i
@@ -64,7 +71,8 @@ def enumPath(img,path,ends='.jpg'):
     
 def main():
     maxn,score,ans=enumPath(data_dir+'zjn.0.jpg',data_dir)
-    
+    print(maxn,score)
+    print(ans)
     
 if __name__=='__main__':
     main()
