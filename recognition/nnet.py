@@ -79,7 +79,7 @@ def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
     gen=data_loader.gen_vgg2
     val_gen=data_loader.val_gen_vgg2
     model=models.MobileNet_FT(opt=opt)
-    print('Fine_Tuned MobileNet loaded, using VGGFace2 datasets.')
+    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset.')
     if load==1:
         model.load_weights(savepath)
         print('Weights loaded.')
@@ -119,20 +119,21 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
     plt.scatter(range(time),cs,s=3e-2)
     plt.show()
     
-#AM-Softmax
-def mn_vgg2_am(load=1,opt='sgd',savepath='mn_am.h5'):
+#LMCL
+def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5'):
     gen=data_loader.sg_vgg2
     val_gen=data_loader.sg_vgg2_val
-    model=models.MobileNet_AM(opt=opt)
+    model=models.MobileNet_LMCL(opt=opt)
     model.summary()
-    print('Fine_Tuned MobileNet loaded, using VGGFace2 datasets and AM-Softmax loss.')
+    print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset and LMCL loss.')
     if load==1:
         model.load_weights(savepath)
         print('Weights loaded.')
     else:
         try:
-            #pass
-            model.fit_generator(gen, steps_per_epoch=30, epochs=100, validation_data = val_gen, validation_steps=20, callbacks=callbacks())
+            model.fit_generator(gen, steps_per_epoch=30, epochs=100, 
+                                validation_data = val_gen, validation_steps=20, 
+                                callbacks=callbacks())
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
         finally:
@@ -146,7 +147,7 @@ def main():
     model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     '''
-    model=mn_vgg2_am(0)
+    model=mn_vgg2_lmcl(0)
     
 if __name__=='__main__':
     main()

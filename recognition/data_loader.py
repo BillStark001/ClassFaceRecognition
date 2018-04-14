@@ -94,15 +94,16 @@ gen_vgg2 = generator(train_dir_vgg2,create_single_VGGFACE,batch_size=32)
 val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=16)
 
 #AM-Softmax/LMCL
-def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4):
+def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4,separate=0.8,select='train'):
     path=glob.glob(path+'*')
-    #print('## path:', path)
     while 1:
         n=np.random.randint(len(path),size=batch_size)
         #print(n)
         x,y=[],[]
         for p in n:
-            X=single(np.random.choice(glob.glob(path[p]+"/*."+ext)),resize=size)
+            ptemp=glob.glob(path[p]+"/*."+ext)
+            sel_dict={'train':ptemp[:int(len(ptemp)*separate)],'val':ptemp[int(len(ptemp)*separate):]}
+            X=single(np.random.choice(sel_dict[select]),resize=size)
             #print(X.astype(np.float64)/256)
             x.append(X)
             onehot=np.zeros((len(path)))
@@ -111,7 +112,7 @@ def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',b
         yield np.array(x),np.array(y,dtype='uint8')
 
 sg_vgg2=singleGenerator(train_dir_vgg2,batch_size=32)
-sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8)
+sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8,select='val')
         
 if __name__=='__main__':
     print(next(singleGenerator(val_dir_vgg2)))

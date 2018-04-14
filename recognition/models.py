@@ -18,68 +18,11 @@ import numpy as np
 
 print('Recognition Models Loaded.')
 
-class AMSoftmax(Layer):
-    def __init__(self, units, s, m,
-                 kernel_initializer='glorot_uniform',
-                 kernel_regularizer=None,
-                 kernel_constraint=None,
-                 **kwargs
-                 ):
-        if 'input_shape' not in kwargs and 'input_dim' in kwargs:
-            kwargs['input_shape'] = (kwargs.pop('input_dim'),)
-        super(AMSoftmax, self).__init__(**kwargs)
-        self.units = units
-        self.s = s
-        self.m = m
-        self.kernel_initializer = initializers.get(kernel_initializer)
-        self.kernel_regularizer = regularizers.get(kernel_regularizer)
-        self.kernel_constraint = constraints.get(kernel_constraint)
-        self.input_spec = InputSpec(min_ndim=2)
-        self.supports_masking = True
-
-
-    def build(self, input_shape):
-        assert len(input_shape) >= 2
-        input_dim = input_shape[-1]
-
-        self.kernel = self.add_weight(shape=(input_dim, self.units),
-                                      initializer=self.kernel_initializer,
-                                      name='kernel',
-                                      regularizer=self.kernel_regularizer,
-                                      constraint=self.kernel_constraint)
-        self.bias = None
-
-        self.input_spec = InputSpec(min_ndim=2, axes={-1: input_dim})
-        self.built = True
-
-
-    def call(self, inputs, **kwargs):
-        inputs = tf.nn.l2_normalize(inputs, dim=-1)
-        self.kernel = tf.nn.l2_normalize(self.kernel, dim=(0, 1))   # W归一化
-
-        dis_cosin = K.dot(inputs, self.kernel)
-        psi = dis_cosin - self.m
-
-        e_costheta = K.exp(self.s * dis_cosin)
-        e_psi = K.exp(self.s * psi)
-        sum_x = K.sum(e_costheta, axis=-1, keepdims=True)
-
-        temp = e_psi + sum_x - e_costheta
-
-        output = e_psi / temp
-        return output
-
 def euclidean_distance(inputs):
     assert len(inputs) == 2, \
         'Euclidean distance needs 2 inputs, %d given' % len(inputs)
     u, v = inputs
     return K.sqrt(K.sum((K.square(u - v)), axis=1, keepdims=True))
-
-def amsoftmax_loss(y_true, y_pred):
-    d1 = K.sum(y_true * y_pred, axis=-1)
-    d1 = K.log(K.clip(d1, K.epsilon(), None))
-    loss = -K.mean(d1, axis=-1)
-    return loss
 
 def contrastive_loss(y_true,y_pred):
     margin=1.
@@ -124,21 +67,39 @@ def MobileNet_FT(opt='sgd',shape=(128,128,3)):
     model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
     #model.summary()
     return Siamase1(model,opt=opt,shape=shape)
+    
+def DenseLMCL(x, units, name='fc_final', s=20, m=0.3):
+    W = Dense(units, use_bias=False, kernel_constraint=constraints.unit_norm(), name=name)
+    normalized_x = Lambda(lambda x: tf.nn.l2_normalize(x, -1))(x)
+    cos_theta = W(normalized_x)
+    output = Lambda(lambda x: x * s)(cos_theta)
+    
+    def lmcl_loss(y_true, y_pred, s=s, m=m):
+        y_pred -= s * m * y_true  # y_true: one-hot vector
+        return tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true)
+    
+    return output, lmcl_loss
 
-def MobileNet_AM(opt='sgd',shape=(128,128,3)):
-    im_in=Input(shape=shape)
+def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=400):
+    im_in=Input(shape=shape,name='im_in')
     model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)(im_in)
     model=GlobalAveragePooling2D()(model)
-    model=Dense(512, activation="tanh")(model)
+    model=Dense(512, activation="tanh", name='fc_out')(model)
     model=Dropout(0.2)(model)
-    model=AMSoftmax(10,10,0.35)(model)
-    model=Model(inputs=im_in,outputs=model)
-    #model.summary()
+    
+    fc_out=model
+    lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
     
     adam = Adam(lr=0.001)
     sgd = SGD(lr=0.001, momentum=0.9)
     opt_dict={'adam':adam,'sgd':sgd}
-    model.compile(optimizer=opt_dict[opt], loss=amsoftmax_loss)
+    if not output_fc:
+        model = Model(im_in, lmcl_out)
+        model.compile(optimizer=opt_dict[opt], loss=lmcl_loss, metrics=['acc'])
+    else:
+        model = Model(im_in, fc1_out)
+        
+    model.summary()
     return model
 
 def fire(x, squeeze=16, expand=64):
@@ -185,7 +146,7 @@ def SqueezeNet(shape=(112,112,3)):
     return Siamase1(modelsqueeze,shape=shape)
 	
 def main():
-    model=MobileNet_AM()
+    model=MobileNet_LMCL()
 	
 if __name__=='__main__':
     main()
