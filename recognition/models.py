@@ -99,7 +99,7 @@ def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=400):
     else:
         model = Model(im_in, fc1_out)
         
-    model.summary()
+    #model.summary()
     return model
 
 def fire(x, squeeze=16, expand=64):
