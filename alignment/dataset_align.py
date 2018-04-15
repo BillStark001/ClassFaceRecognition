@@ -10,8 +10,8 @@ import cv2
 import main
 
 base=''
-save_path='Saved_Pics/'
-align_path='Aligned_Pics/'
+save_path=base+'Saved_Pics/'
+align_path=base+'Aligned_Pics/'
 
 d=os.listdir(save_path)
 for dd in d:
