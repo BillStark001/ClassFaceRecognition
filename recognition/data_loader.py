@@ -31,6 +31,7 @@ def create_single_VAPRGBD(file_path,region=(90,112,170,112),thumbnail=(432,324))
     
 def create_single_VGGFACE(file_path,resize=(128,128),minsize=64):
     img = cv2.imread(file_path)
+    if img is None:return img
     h, w, c = img.shape
     if c == 1: img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     else: img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -88,8 +89,8 @@ gen_vgg2 = generator(train_dir_vgg2,create_single_VGGFACE,batch_size=32)
 val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=16)
 
 #AM-Softmax/LMCL
-def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4,separate=0.8,select='train'):
-    path=glob.glob(path+'*')
+def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4,separate=0.8,select='train',count=1000):
+    path=glob.glob(path+'*')[:count]
     while 1:
         n=np.random.randint(len(path),size=batch_size)
         #print(n)
@@ -97,7 +98,8 @@ def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',b
         for p in n:
             ptemp=glob.glob(path[p]+"/*."+ext)
             sel_dict={'train':ptemp[:int(len(ptemp)*separate)],'val':ptemp[int(len(ptemp)*separate):]}
-            X=single(np.random.choice(sel_dict[select]),resize=size)
+            X=None
+            while X is None:X=single(np.random.choice(sel_dict[select]),resize=size)
             #print(X.astype(np.float64)/256)
             x.append(X)
             onehot=np.zeros((len(path)))
@@ -105,8 +107,8 @@ def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',b
             y.append(onehot)
         yield np.array(x),np.array(y,dtype='uint8')
 
-sg_vgg2=singleGenerator(train_dir_vgg2,batch_size=32)
-sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8,select='val')
+sg_vgg2=singleGenerator(train_dir_vgg2,batch_size=32,count=500)
+sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8,select='val',count=500)
         
 if __name__=='__main__':
     print(next(singleGenerator(val_dir_vgg2)))

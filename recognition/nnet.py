@@ -26,7 +26,7 @@ train_dir_vgg=root+'\\VGGFACE\\train\\'
 val_dir_vgg=root+'\\VGGFACE\\val\\'
 train_dir_vgg2=root+'\\VGGFACE2\\train\\'
 val_dir_vgg2=root+'\\VGGFACE2\\val\\'
-cb_dir=root+'\\callbacks.h5'
+cb_dir='callbacks.h5'
 
 print('Recognition Networks Loaded.')
 
@@ -125,14 +125,16 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
 def callbacks_lmcl():
     def lr_schedule(epoch):
         lr = 1e-3
-        if epoch>140:lr*=5e-4
-        elif epoch>100:lr*=1e-3
-        elif epoch>70:lr*=1e-2
-        elif epoch>30:lr*=1e-1
+        if epoch>240:lr*=5e-5
+        elif epoch>200:lr*=1e-4
+        elif epoch>160:lr*=5e-4
+        elif epoch>120:lr*=1e-3
+        elif epoch>80:lr*=1e-2
+        elif epoch>40:lr*=1e-1
         print('Learning rate: ', lr)
         return lr
     
-    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acccc',verbose=1,save_best_only=True)
+    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
     lr_scheduler = LearningRateScheduler(lr_schedule)
     lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=5e-7)
     
@@ -144,9 +146,10 @@ def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5'):
     
     if load!=1:
         model=models.MobileNet_LMCL(opt=opt)
+        model.load_weights('mn_am.h5')
         try:
-            model.fit_generator(gen, steps_per_epoch=30, epochs=200, 
-                                validation_data = val_gen, validation_steps=20, 
+            model.fit_generator(gen, steps_per_epoch=30, epochs=250, 
+                                validation_data = val_gen, validation_steps=30, 
                                 callbacks=callbacks_lmcl())
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
@@ -173,9 +176,9 @@ def main():
     model=mn_vgg2(1)
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
-    evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
+    evaluate_cl(model,val_dir_vgg2,datna_loader.create_single_VGGFACE)
     '''
-    model=mn_vgg2_lmcl(1)
+    model=mn_vgg2_lmcl(0)
     #evaluate_lmcl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     
 if __name__=='__main__':

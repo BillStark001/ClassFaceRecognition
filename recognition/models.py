@@ -65,7 +65,7 @@ def MobileNet_FT(opt='sgd',shape=(128,128,3)):
     #model.summary()
     return Siamase1(model,opt=opt,shape=shape)
     
-def DenseLMCL(x, units, name='fc_final', s=20, m=0.3):
+def DenseLMCL(x, units, name='fc_final', s=24, m=0.2):
     W = Dense(units, use_bias=False, kernel_constraint=constraints.unit_norm(), name=name)
     normalized_x = Lambda(lambda x: tf.nn.l2_normalize(x, -1))(x)
     cos_theta = W(normalized_x)
@@ -77,12 +77,13 @@ def DenseLMCL(x, units, name='fc_final', s=20, m=0.3):
     
     return output, lmcl_loss
 
-def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=400):
+def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
     im_in=Input(shape=shape,name='im_in')
-    model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)(im_in)
+    model=MobileNet(include_top=False, weights=None, input_tensor=None, input_shape=shape, pooling=None)(im_in)
     model=GlobalAveragePooling2D()(model)
-    model=Dense(512, activation="tanh", name='fc_out')(model)
-    model=Dropout(0.2)(model)
+    #model=Dropout(0.25)(model)
+    model=Dense(1024, activation="relu", name='fc_00')(model)
+    model=Dense(512, activation="relu", name='fc_out')(model)
     
     fc_out=model
     lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
@@ -135,15 +136,44 @@ def SqueezeNet(shape=(112,112,3)):
     
     x = Dropout(0.2)(x)
     
-    x = Convolution2D(512, (1, 1), padding='same')(x)
-    out = Activation('relu')(x)
+    x = Convolution2D(512, (1, 1), padding='same', activation='tanh')(x)
+    #out = Activation('relu')(x)
     
-    modelsqueeze=Model(img_input, out)
-    #modelsqueeze.summary()
+    model=Model(img_input, x)
+    return model
+
+def SqueezeNet_Cons(shape=(112,112,3)):
+    modelsqueeze=SqueezeNet(shape=shape)
     return Siamase1(modelsqueeze,shape=shape)
+
+def SqueezeNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
+    im_in=Input(shape=shape,name='im_in')
+    model=SqueezeNet(shape=shape)(im_in)
+    model.summary()
+    
+    model=GlobalAveragePooling2D()(model)
+    #model=Dropout(0.25)(model)
+    #model=Dense(1024, activation="relu", name='fc_00')(model)
+    model=Dense(512, activation="relu", name='fc_out')(model)
+    
+    fc_out=model
+    lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
+    
+    adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.001, momentum=0.9)
+    opt_dict={'adam':adam,'sgd':sgd}
+    if not output_fc:
+        model = Model(im_in, lmcl_out)
+        model.compile(optimizer=opt_dict[opt], loss=lmcl_loss, metrics=['acc'])
+    else:
+        model = Model(im_in, fc_out)
+        
+    #model.summary()
+    return model
 	
 def main():
-    model=MobileNet_LMCL()
+    model=SqueezeNet_LMCL()
+    model.summary()
 	
 if __name__=='__main__':
     main()
