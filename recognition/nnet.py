@@ -125,12 +125,12 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
 def callbacks_lmcl():
     def lr_schedule(epoch):
         lr = 1e-3
-        if epoch>240:lr*=5e-5
-        elif epoch>200:lr*=1e-4
-        elif epoch>160:lr*=5e-4
-        elif epoch>120:lr*=1e-3
-        elif epoch>80:lr*=1e-2
-        elif epoch>40:lr*=1e-1
+        if epoch>210:lr*=5e-5
+        elif epoch>170:lr*=1e-4
+        elif epoch>130:lr*=5e-4
+        elif epoch>90:lr*=1e-3
+        elif epoch>55:lr*=1e-2
+        elif epoch>25:lr*=1e-1
         print('Learning rate: ', lr)
         return lr
     

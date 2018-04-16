@@ -145,34 +145,9 @@ def SqueezeNet(shape=(112,112,3)):
 def SqueezeNet_Cons(shape=(112,112,3)):
     modelsqueeze=SqueezeNet(shape=shape)
     return Siamase1(modelsqueeze,shape=shape)
-
-def SqueezeNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
-    im_in=Input(shape=shape,name='im_in')
-    model=SqueezeNet(shape=shape)(im_in)
-    model.summary()
-    
-    model=GlobalAveragePooling2D()(model)
-    #model=Dropout(0.25)(model)
-    #model=Dense(1024, activation="relu", name='fc_00')(model)
-    model=Dense(512, activation="relu", name='fc_out')(model)
-    
-    fc_out=model
-    lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
-    
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    opt_dict={'adam':adam,'sgd':sgd}
-    if not output_fc:
-        model = Model(im_in, lmcl_out)
-        model.compile(optimizer=opt_dict[opt], loss=lmcl_loss, metrics=['acc'])
-    else:
-        model = Model(im_in, fc_out)
-        
-    #model.summary()
-    return model
 	
 def main():
-    model=SqueezeNet_LMCL()
+    model=MobileNet_LMCL()
     model.summary()
 	
 if __name__=='__main__':
