@@ -89,27 +89,39 @@ gen_vgg2 = generator(train_dir_vgg2,create_single_VGGFACE,batch_size=32)
 val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=16)
 
 #AM-Softmax/LMCL
-def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=4,separate=0.8,select='train',count=1000):
+def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=(12,3),separate=0.8,select='train',count=1000):
     path=glob.glob(path+'*')[:count]
     while 1:
-        n=np.random.randint(len(path),size=batch_size)
+        n=np.random.randint(len(path),size=batch_size[0])
         #print(n)
         x,y=[],[]
         for p in n:
             ptemp=glob.glob(path[p]+"/*."+ext)
             sel_dict={'train':ptemp[:int(len(ptemp)*separate)],'val':ptemp[int(len(ptemp)*separate):]}
-            X=None
-            while X is None:X=single(np.random.choice(sel_dict[select]),resize=size)
-            #print(X.astype(np.float64)/256)
-            x.append(X)
-            onehot=np.zeros((len(path)))
-            onehot[p]=1
-            y.append(onehot)
-        yield np.array(x),np.array(y,dtype='uint8')
+            img_selected=np.random.choice(sel_dict[select],batch_size[1])
+            for img in img_selected:
+                X=single(img,resize=size)
+                while X is None:
+                    X=single(np.random.choice(sel_dict[select]),resize=size)
+                #if X is None:print(img)
+                #print(X.astype(np.float64)/256)
+                x.append(X)
+                onehot=np.zeros((len(path)))
+                onehot[p]=1
+                y.append(onehot)
+        x=np.array(x)
+        y=np.array(y,dtype='uint8')
+        if x.shape==(36,1):print(n)
+        yield x,y
 
-sg_vgg2=singleGenerator(train_dir_vgg2,batch_size=32,count=500)
-sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=8,select='val',count=500)
+temp_dir='O:\\Datasets\\vggface2\\Aligned_Pics\\'
+
+sg_vgg2=singleGenerator(train_dir_vgg2,count=500)
+sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=(4,3),select='val',count=500)
         
 if __name__=='__main__':
-    print(next(singleGenerator(val_dir_vgg2)))
+    #print(next(singleGenerator(val_dir_vgg2,count=5,batch_size=(2,3))))
+    while 1:
+        a=next(singleGenerator(val_dir_vgg2,count=5,batch_size=(13,3)))
+        print(0)
     pass
