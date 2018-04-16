@@ -38,14 +38,20 @@ def calculateDis(img1,img2,mode='cons'):
     if mode=='cons':
         return model_cons.predict([img1.reshape((1,128,128,3)),img2.reshape((1,128,128,3))])[0,0]
     elif mode=='lmcl':
-        a=model_lmcl.predict(img1.reshape((1,128,128,3)))
-        b=model_lmcl.predict(img2.reshape((1,128,128,3)))
+        a=model_lmcl.predict(img1.reshape((1,128,128,3)))#[0,0]
+        b=model_lmcl.predict(img2.reshape((1,128,128,3)))#[0,0]
+        
         c=np.dot(a,b.T)
         d1=np.dot(a,a.T)**0.5
         d2=np.dot(b,b.T)**0.5
-        e=(c/(d1*d2)+1)/2
-        return 1-e
-
+        e=c/(d1*d2)[0,0]
+        return np.arccos(e)*180/3.141592653589793238462643383279502871970#1-(e+1)/2
+        '''
+        c=a-b
+        c=c.dot(c.T)**0.5
+        return c
+        '''
+        
 def enumPath(img,path,ends='.jpg',mode='cons'):
     print('Enum Path: {}...'.format(path))
     maxn,score='',100.
