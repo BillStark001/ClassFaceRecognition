@@ -8,15 +8,21 @@ Update: 2018/02/23
 import vstream.cv as vst
 import face_detect.cv as detect
 import alignment.main as align
-import recognition.interface as rec
+try:
+    assert rec
+except:
+    import recognition.interface as rec
 print('Import Finished.')
 #OTHERS
+import numpy as np
 import cv2
 
 #root='F:\\Datasets\\TestFace\\'
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
 data_dir=root+'\\registered\\'
 test_dir=root+'\\test\\'
+
+embed_path='recognition\\embed.pkl'
 
 Input=vst.VStream((1,0),(1280,720))
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -26,6 +32,10 @@ def detectAndDraw(image=Input.getCurrentIMG()):
     coors=detect.detectFace(image)
     image=detect.drawFaceCoor(image,coors)
     imgs=np.array(detect.splitbyCoor(image,coors,bias=20))
+    if imgs.shape[0]==0:return image
+    
+    for i in imgs
+    
     if not imgs.shape[0]==0:
         for i in range(imgs.shape[0]):
             img=np.array(imgs[i],dtype='uint8')
@@ -40,6 +50,7 @@ def detectAndDraw(image=Input.getCurrentIMG()):
             cv2.imshow('Aligned',aligned_img)
 
     #detect.saveFaces(detect.splitbyCoor(image,coors,bias=20))
+    
     return image
 '''
 def detectAndDraw(image=Input.getCurrentIMG()):
@@ -52,7 +63,7 @@ def detectAndDraw(image=Input.getCurrentIMG()):
         bias=5
         
         #maxn,score,ans=rec.enumPath(f,data_dir,mode='cons')
-        maxn,score,ans=rec.enumPath(f,data_dir,mode='lmcl')
+        maxn,score,ans=rec.enumPath(f,rec.load_embed(embed_path),mode='lmcl')
         print('Face {}: {}, score={}.'.format(i,maxn,score))
         print(ans)
         
