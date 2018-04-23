@@ -5,23 +5,28 @@ Update: 2018/02/23
 """
 
 #LOCAL
-import vstream.cv as vst
-import face_detect.cv as detect
-import alignment.main as align
+import vstream.cv as vst #Video Stream using opencv
+import face_detect.cv as detect #Now not used
+import alignment.main as align #Alignment using dlib
 try:
     assert rec
 except:
+    wkdir=os.getcwd()
     import recognition.interface as rec
+    os.chdir(wkdir)
+#Recognition
 print('Import Finished.')
 #OTHERS
 import numpy as np
 import cv2
+import os
 
 #root='F:\\Datasets\\TestFace\\'
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'
 data_dir=root+'\\registered\\'
 test_dir=root+'\\test\\'
 
+#print(os.getcwd())
 embed_path='recognition\\embed.pkl'
 
 Input=vst.VStream((1,0),(1280,720))
@@ -79,7 +84,9 @@ def showDetect(Wait=10,Key='q'):
         try:
             image=Input.getCurrentIMG()
             cv2.imshow('Capturing',detectAndDraw(image))
-            if cv2.waitKey(Wait)&0xFF==ord(Key):break
+            if cv2.waitKey(Wait)&0xFF==ord(Key):
+                print('Abort key\'{}\' Received. Recognition Aborted.'.format(Key))
+                break
         except KeyboardInterrupt:
             print('KeyboardInterrupt Received. Recognition Aborted.')
             break

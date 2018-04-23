@@ -24,7 +24,7 @@ mn2_weights = 'mn2.h5'
 mn_lmcl_weights = 'mn_lmcl.h5'
 
 ### NOTE: ???
-working_dir = 'C:\\Users\\zhaoj\\Documents\\Programs\\ClassFaceRecognition\\recognition'
+working_dir = os.getcwd()+'\\recognition'
 os.chdir(working_dir)
 
 try:
