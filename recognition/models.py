@@ -11,6 +11,7 @@ from keras.optimizers import Adam, SGD
 from keras.layers import activations, initializers, regularizers, constraints
 from keras import backend as K
 from keras.applications.mobilenet import MobileNet
+from keras.utils.vis_utils import plot_model 
 import tensorflow as tf
 
 print('Recognition Models Loaded.')
@@ -149,6 +150,7 @@ def SqueezeNet_Cons(shape=(112,112,3)):
 def main():
     model=MobileNet_LMCL()
     model.summary()
+    #plot_model(model,show_shapes=True)
 	
 if __name__=='__main__':
     main()
