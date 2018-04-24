@@ -160,7 +160,7 @@ def callbacks_lmcl(opt='adam'):
             #stopping
            ]
 
-def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=500,preload=None):
+def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5',units=500,preload=None):
     
     gen=data_loader.singleGenerator(train_dir_vgg2,count=units)
     val_gen=data_loader.singleGenerator(train_dir_vgg2,select='val',count=units)
@@ -170,7 +170,7 @@ def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=500,preload=None):
         if isinstance(preload,str):
             model.load_weights(preload)
         try:
-            model.fit_generator(gen, steps_per_epoch=30, epochs=1000, 
+            model.fit_generator(gen, steps_per_epoch=30, epochs=200, 
                                 validation_data = val_gen, validation_steps=10, 
                                 callbacks=callbacks_lmcl(opt))
         except KeyboardInterrupt:
@@ -193,7 +193,7 @@ def main():
     evaluate_cl(model,val_dir_vgg2,datna_loader.create_single_VGGFACE)
     '''
     model=mn_vgg2_lmcl(0)
-    #model=mn_vgg2_lmcl(0,preload='mn_am_750.h5')
+    #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5'preload='mn_lmcl_sgd.h5')
     
 if __name__=='__main__':
     main()

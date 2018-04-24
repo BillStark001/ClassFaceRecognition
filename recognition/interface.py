@@ -21,7 +21,7 @@ test_dir = root + '\\test\\'
 save_name = 'fc_cache.npy'
 
 mn2_weights = 'mn2.h5'
-mn_lmcl_weights = 'mn_lmcl.h5'
+mn_lmcl_weights = 'mn_lmcl_adam.h5'
 
 ### NOTE: ???
 working_dir = os.getcwd()+'\\recognition'
