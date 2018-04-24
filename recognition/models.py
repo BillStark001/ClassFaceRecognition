@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Mar  5 21:26:16 2018
 @author: BillStark001
-"""
+'''
 
 from keras.models import Model
 from keras.layers import Activation, Flatten, Dense, Dropout, Lambda, concatenate, GlobalAveragePooling2D, Input, BatchNormalization
@@ -33,11 +33,11 @@ def Siamase1(model,opt='sgd',shape=(128,128,3)):
     x1 = model(im_in)
     x1 = GlobalAveragePooling2D()(x1)
     #x1 = Flatten()(x1)
-    x1 = Dense(512, activation="tanh")(x1)
-    x1 = Dense(512, activation="tanh")(x1)
+    x1 = Dense(512, activation='tanh')(x1)
+    x1 = Dense(512, activation='tanh')(x1)
     x1 = Dropout(0.2)(x1)
     
-    feat_x = Dense(128, activation="tanh")(x1)
+    feat_x = Dense(128, activation='tanh')(x1)
     feat_x = Lambda(lambda x: K.l2_normalize(x,axis=1))(feat_x)
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
@@ -80,21 +80,18 @@ def DenseLMCL(x, units, name='fc_final', s=24, m=0.2):
 
 def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
     im_in=Input(shape=shape,name='im_in')
-    model=MobileNet(include_top=False, weights=None, input_tensor=None, input_shape=shape, pooling=None)(im_in)
+    model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)(im_in)
     model=GlobalAveragePooling2D()(model)
     #model=Dropout(0.25)(model)
-    model=Dense(1024, activation="relu", name='fc_00')(model)
-    model=Dense(512, activation="relu", name='fc_out')(model)
+    model=Dense(1024, activation='relu', name='fc_00')(model)
+    model=Dense(512, activation='relu', name='fc_out')(model)
     
     fc_out=model
     lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
     
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    opt_dict={'adam':adam,'sgd':sgd}
     if not output_fc:
         model = Model(im_in, lmcl_out)
-        model.compile(optimizer=opt_dict[opt], loss=lmcl_loss, metrics=['acc'])
+        model.compile(optimizer=opt, loss=lmcl_loss, metrics=['acc'])
     else:
         model = Model(im_in, fc_out)
         

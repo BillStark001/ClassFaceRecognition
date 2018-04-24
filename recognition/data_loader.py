@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Mar 26 19:38:56 2018
-@author: normandipalo
-
-Input preprocessing.
-Here we create some functions that will create the input couple for our model, both correct and wrong couples. I created functions to have both depth-only input and RGBD inputs.
-"""
+@author: BillStark001
+@implememtion: normandipalo
+'''
 
 import numpy as np
 import glob
@@ -42,10 +40,10 @@ def create_single_VGGFACE(file_path,resize=(128,128),minsize=64):
 def get_dir(file_path,mode,ext):
     if mode=='positive':
         path=np.random.choice(file_path)
-        path=np.random.choice(glob.glob(path + "/*."+ext),2)
+        path=np.random.choice(glob.glob(path + '/*.'+ext),2)
     elif mode=='negative':
         path=np.random.choice(file_path,2)
-        path=[np.random.choice(glob.glob(path[0] + "\\*."+ext)),np.random.choice(glob.glob(path[1] + "\\*."+ext))]
+        path=[np.random.choice(glob.glob(path[0] + '\\*.'+ext)),np.random.choice(glob.glob(path[1] + '\\*.'+ext))]
     return path
 
 def create_pair_rgb(path,single,ext='jpg'):
@@ -96,7 +94,7 @@ def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',b
         #print(n)
         x,y=[],[]
         for p in n:
-            ptemp=glob.glob(path[p]+"/*."+ext)
+            ptemp=glob.glob(path[p]+'/*.'+ext)
             sel_dict={'train':ptemp[:int(len(ptemp)*separate)],'val':ptemp[int(len(ptemp)*separate):]}
             img_selected=np.random.choice(sel_dict[select],batch_size[1])
             for img in img_selected:
@@ -116,8 +114,8 @@ def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',b
 
 temp_dir='O:\\Datasets\\vggface2\\Aligned_Pics\\'
 
-sg_vgg2=singleGenerator(train_dir_vgg2,count=500)
-sg_vgg2_val=singleGenerator(train_dir_vgg2,batch_size=(4,3),select='val',count=500)
+sg_vgg2=singleGenerator(train_dir_vgg2,count=750)
+sg_vgg2_val=singleGenerator(train_dir_vgg2,select='val',count=750)
         
 if __name__=='__main__':
     #print(next(singleGenerator(val_dir_vgg2,count=5,batch_size=(2,3))))

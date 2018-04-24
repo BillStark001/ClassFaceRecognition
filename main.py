@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Author: BillStark001
-Update: 2018/02/23
-"""
-
+'''
+Created on Fri Feb 23 15:38:56 2018
+@author: BillStark001
+'''
+import os
 #LOCAL
 import vstream.cv as vst #Video Stream using opencv
 import face_detect.cv as detect #Now not used
@@ -19,7 +19,6 @@ print('Import Finished.')
 #OTHERS
 import numpy as np
 import cv2
-import os
 
 #root='F:\\Datasets\\TestFace\\'
 root='C:\\Users\\zhaoj\\Documents\\Datasets\\TestFace\\'

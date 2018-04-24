@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Mar  5 20:29:27 2018
 @author: BillStark001
-"""
+'''
 
 #LOCAL
 try:
@@ -16,7 +16,7 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.callbacks import ReduceLROnPlateau
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping, TensorBoard
 
 root='F:\\Datasets'
 #root='C:\\Users\\zhaoj\\Documents\\Datasets'
@@ -41,7 +41,7 @@ def callbacks():
         print('Learning rate: ', lr)
         return lr
     
-    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acccc',verbose=1,save_best_only=True)
+    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
     lr_scheduler = LearningRateScheduler(lr_schedule)
     lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=0.5e-6)
     
@@ -122,9 +122,9 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
     plt.show()
     
 #LMCL
-def callbacks_lmcl():
-    def lr_schedule(epoch):
-        lr = 1e-3
+def callbacks_lmcl(opt='adam'):
+    def lrs_sgd(epoch):
+        lr=1e-2
         if epoch>210:lr*=5e-5
         elif epoch>170:lr*=1e-4
         elif epoch>130:lr*=5e-4
@@ -133,43 +133,57 @@ def callbacks_lmcl():
         elif epoch>25:lr*=1e-1
         print('Learning rate: ', lr)
         return lr
-    
-    checkpoint = ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
-    lr_scheduler = LearningRateScheduler(lr_schedule)
-    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=5,min_lr=5e-7)
-    
-    return [checkpoint,lr_reducer,lr_scheduler]
+    def lrs_adam(epoch):
+        lr=1e-3
+        if epoch>225:lr*=1e-5
+        elif epoch>180:lr*=5e-5
+        elif epoch>145:lr*=1e-4
+        elif epoch>110:lr*=5e-4
+        elif epoch>80:lr*=1e-3
+        elif epoch>50:lr*=1e-2
+        elif epoch>25:lr*=1e-1
+        print('Learning rate: ', lr)
+        return lr
+    lr_schedule={'adam':lrs_adam,'sgd':lrs_sgd}
+    lr_scheduler=LearningRateScheduler(lr_schedule[opt]) 
+    board=TensorBoard(log_dir='./logs')
+    checkpoint=ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
+    stopping=EarlyStopping(patience=10,verbose=0,mode='auto')
 
-def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5'):
-    gen=data_loader.sg_vgg2
-    val_gen=data_loader.sg_vgg2_val
+    lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=8,epsilon=0.001,min_lr=1e-9)
+    
+    return [
+            #checkpoint,
+            lr_reducer,
+            #lr_scheduler,
+            board
+            #stopping
+           ]
+
+def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=500,preload=None):
+    
+    gen=data_loader.singleGenerator(train_dir_vgg2,count=units)
+    val_gen=data_loader.singleGenerator(train_dir_vgg2,select='val',count=units)
     
     if load!=1:
-        model=models.MobileNet_LMCL(opt=opt)
-        model.load_weights('mn_am.h5')
+        model=models.MobileNet_LMCL(opt=opt,units=units)
+        if isinstance(preload,str):
+            model.load_weights(preload)
         try:
-            model.fit_generator(gen, steps_per_epoch=30, epochs=250, 
-                                validation_data = val_gen, validation_steps=30, 
-                                callbacks=callbacks_lmcl())
+            model.fit_generator(gen, steps_per_epoch=30, epochs=1000, 
+                                validation_data = val_gen, validation_steps=10, 
+                                callbacks=callbacks_lmcl(opt))
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
         finally:
             model.save_weights(savepath)
     
     print('Loading weights...')
-    model=models.MobileNet_LMCL(opt=opt,output_fc=True)
+    model=models.MobileNet_LMCL(opt=opt,output_fc=True,units=units)
     model.load_weights(savepath,by_name=True)
     print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset and LMCL loss.')
-    #model.summary()
-    return model
-
-'''
-def evaluate_lmcl(model,val_dir,single,form='jpg',shape=(1,128,128,3)):
-    val_dir=glob.glob(val_dir+'*')
     
-    for d in val_dir:
-        d=np.random.choice(glob.glob(d'\\*.'+form))
-'''
+    return model
 
 def main():
     '''
@@ -179,7 +193,7 @@ def main():
     evaluate_cl(model,val_dir_vgg2,datna_loader.create_single_VGGFACE)
     '''
     model=mn_vgg2_lmcl(0)
-    #evaluate_lmcl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
+    #model=mn_vgg2_lmcl(0,preload='mn_am_750.h5')
     
 if __name__=='__main__':
     main()

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Mar 26 19:38:56 2018
 @author: BillStark001
-"""
+'''
 try:
     import nnet
 except ImportError as e:
