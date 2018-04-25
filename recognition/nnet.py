@@ -95,7 +95,7 @@ def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
     print('Fine_Tuned MobileNet loaded, using VGGFace2 dataset.')
     return model
 
-def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
+def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500,acc=1000):
     cp,cn,cs=[],[],[]
     val_dir=glob.glob(val_dir+'*')
     
@@ -112,14 +112,45 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=5000):
         cn.append(c2)
         cs.append(abs(c2-c1))
         
-    cs.sort()
+    #cs.sort()
     cp.sort()
     cn.sort(reverse=True)
+    cp=np.array(cp)*acc
+    cp=np.array(cp,dtype=np.int32)
+    cn=np.array(cn)*acc
+    cn=np.array(cn,dtype=np.int32)
+    
+    crp,crn=np.zeros(acc,dtype=np.int32),np.zeros(acc,dtype=np.int32)
+    for i in range(time):
+        try:crp[cp[i]]+=1
+        except IndexError as e:crp[999]+=1
+        try:crn[cn[i]]+=1
+        except IndexError as e:crn[999]+=1
+    for i in range(acc):
+        if i==0:continue
+        crp[i]+=crp[i-1]
+        crn[i]+=crn[i-1]
+    
+    rocx,rocy=[],[]
+    rocs=np.ones(time)#*time
 
-    plt.scatter(range(time),cp,s=1e-1)
-    plt.scatter(range(time),cn,s=1e-1)
-    plt.scatter(range(time),cs,s=3e-2)
+    for i in range(acc):
+        rocx.append(time-crp[i])
+        rocy.append(time-crn[i])
+        try:rocs[time-crp[i]]=min(time-crn[i],rocs[time-crp[i]])
+        except:rocs[time-1]=min(time-crn[i],rocs[time-1])
+        
+
+    plt.scatter(range(acc),crp,s=1e-0)
+    plt.scatter(range(acc),crn,s=1e-0)
+    #plt.scatter(range(time),cs,s=3e-2)
     plt.show()
+    
+    plt.scatter(rocx,rocy,s=7e-1)
+    plt.show()
+    
+    s=np.sum(rocs)/time**2
+    print('ROC:%.3f'%s)
     
 #LMCL
 def callbacks_lmcl(opt='adam'):
@@ -186,14 +217,14 @@ def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5',units=500,preload=None)
     return model
 
 def main():
-    '''
+    
     model=mn_vgg2(1)
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
-    model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
-    evaluate_cl(model,val_dir_vgg2,datna_loader.create_single_VGGFACE)
+    #model=mn_vgg2(0,opt='adam',savepath='mn1.h5')
+    #evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     '''
     #model=mn_vgg2_lmcl(0)
-    model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
-    
+    #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
+    '''
 if __name__=='__main__':
     main()
