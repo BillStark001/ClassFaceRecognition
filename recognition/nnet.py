@@ -192,8 +192,8 @@ def main():
     model=mn_vgg2(1,opt='adam',savepath='mn1.h5')
     evaluate_cl(model,val_dir_vgg2,datna_loader.create_single_VGGFACE)
     '''
-    model=mn_vgg2_lmcl(0)
-    #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5'preload='mn_lmcl_sgd.h5')
+    #model=mn_vgg2_lmcl(0)
+    model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
     
 if __name__=='__main__':
     main()
