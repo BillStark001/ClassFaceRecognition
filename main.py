@@ -69,7 +69,7 @@ def detectAndDraw(image=Input.getCurrentIMG()):
         #maxn,score,ans=rec.enumPath(f,data_dir,mode='cons')
         maxn,score,ans=rec.enumPath(f,rec.load_embed(embed_path),mode='lmcl')
         print('Face {}: {}, score={}.'.format(i,maxn,score))
-        print(ans)
+        print(np.array(ans))
         
         cv2.putText(image,maxn,(x+bias,y-bias),font,1,(255,0,255),2)
         cv2.putText(image,str(score),(x+bias,h-bias),font,1,(255,255,0),1)

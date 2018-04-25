@@ -21,11 +21,14 @@ test_dir = root + '\\test\\'
 save_name = 'fc_cache.npy'
 
 mn2_weights = 'mn2.h5'
-mn_lmcl_weights = 'mn_lmcl_adam.h5'
+mn_lmcl_weights = 'mn_lmcl_sgd.h5'
 
 ### NOTE: ???
-working_dir = os.getcwd()+'\\recognition'
-os.chdir(working_dir)
+try:
+    working_dir = os.getcwd()+'\\recognition'
+    os.chdir(working_dir)
+except:
+    pass
 
 try:
     assert model_cons and model_lmcl
@@ -87,21 +90,19 @@ def enumPath_cons(img,path,ends='.jpg'):
     
 def enumPath_lmcl(img,embed):
     print('Enum Embedding Vectors...')
-    maxn,score='',100.
-    ans={}
-    time={}
+    maxn,score='',180.
+    ans,time={},{}
+    cur=model_lmcl.predict(img.reshape((1,128,128,3)))
     for p in embed:
         time[p]=0
-    for p in embed:
-        p0=p
-        cur=model_lmcl.predict(img.reshape((1,128,128,3)))
-        for e in embed[p0]:
-            i = angle(cur,e)
+        for e in embed[p]:
+            i=angle(cur,e)[0,0]
             time[p]+=1
             if time[p]==1:
                 ans[p]=i
             else:
-                ans[p]=(ans[p]*(time[p]-1)+i)/time[p]#min(ans[p.split('.')[0]],i)
+                ans[p]=min(ans[p],i)
+                #ans[p]=(ans[p]*(time[p]-1)+i)/time[p]
             if score>ans[p]:
                 score=ans[p]
                 maxn=p
@@ -112,7 +113,11 @@ def enumPath(img,path,ends='.jpg',mode='lmcl'):
         a=enumPath_cons(img,path,ends)
     elif mode=='lmcl':
         a=enumPath_lmcl(img,path)
-    return a
+    maxn,score,ans=a
+    #print(list(ans.items()))
+    ans=sorted(list(ans.items()),key=lambda k:int(k[1]*1000))
+    #ans=np.array(ans)
+    return maxn,score,ans
     
 def save_embeddings(dir=data_dir, save=None, model=model_lmcl):
     embeddings = {}
@@ -149,8 +154,8 @@ def load_embed(path):
     return embed
     
 def fake_main():
-    embed=save_embeddings(save='embed.pkl')
-    
+    #embed=save_embeddings(save='embed.pkl')
+    embed=load_embed('embed.pkl')
     img = loadImage('zjn.jpg')
     img = np.expand_dims(img, 0)
 
