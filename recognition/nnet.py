@@ -150,7 +150,7 @@ def callbacks_lmcl(opt='adam'):
     checkpoint=ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
     stopping=EarlyStopping(patience=10,verbose=0,mode='auto')
 
-    lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=8,epsilon=0.001,min_lr=1e-9)
+    lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=15,epsilon=0.001,min_lr=1e-9)
     
     return [
             #checkpoint,
@@ -170,7 +170,7 @@ def mn_vgg2_lmcl(load=1,opt='adam',savepath='mn_lmcl.h5',units=500,preload=None)
         if isinstance(preload,str):
             model.load_weights(preload)
         try:
-            model.fit_generator(gen, steps_per_epoch=30, epochs=200, 
+            model.fit_generator(gen, steps_per_epoch=32, epochs=5000, 
                                 validation_data = val_gen, validation_steps=10, 
                                 callbacks=callbacks_lmcl(opt))
         except KeyboardInterrupt:
