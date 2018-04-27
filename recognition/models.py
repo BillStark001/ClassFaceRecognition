@@ -85,8 +85,8 @@ def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
     model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)(im_in)
     model=GlobalAveragePooling2D()(model)
     #model=Dropout(0.25)(model)
-    model=Dense(1024, activation='relu', name='fc_00')(model)
-    model=Dense(512, activation='relu', name='fc_out')(model)
+    model=Dense(512, activation='tanh', name='fc_00')(model)
+    model=Dense(128, activation='tanh', name='fc_out')(model)
     
     fc_out=model
     lmcl_out,lmcl_loss=DenseLMCL(model,units=units,name='fc_final')
@@ -99,6 +99,17 @@ def MobileNet_LMCL(output_fc=False,opt='adam',shape=(128,128,3),units=500):
         
     #model.summary()
     return model
+
+def main():
+    model=MobileNet_FT()
+    model.summary()
+    #plot_model(model,to_file='model_siamase.png',show_shapes=True)
+    
+	
+if __name__=='__main__':
+    main()
+
+'''
 
 def fire(x, squeeze=16, expand=64):
     x = Convolution2D(squeeze, (1,1), padding='valid')(x)
@@ -145,13 +156,34 @@ def SqueezeNet(shape=(112,112,3)):
 def SqueezeNet_Cons(shape=(112,112,3)):
     modelsqueeze=SqueezeNet(shape=shape)
     return Siamase1(modelsqueeze,shape=shape)
-	
-def main():
-    model=MobileNet_FT()
-    model.summary()
-    #plot_model(model,to_file='model_siamase.png',show_shapes=True)
-    
-	
-if __name__=='__main__':
-    main()
 
+def sn_vap(load=1,savepath='sn.h5'):
+    gen=data_loader.gen_vap
+    val_gen=data_loader.val_gen_vap
+    model=models.SqueezeNet()
+    if load==1:
+        model.load_weights(savepath)
+    else:
+        model.fit_generator(gen, steps_per_epoch=30, epochs=50, validation_data = val_gen, validation_steps=20)
+        model.save(savepath)
+    return model
+
+def mn_vgg(load=1,savepath='mn.h5'):
+    gen=data_loader.gen_vgg
+    val_gen=data_loader.val_gen_vgg
+    model=models.MobileNet_FT()
+    print('MobileNet_Fine_Tuned Loaded.')
+    if load==1:
+        model.load_weights(savepath)
+        print('Weights Loaded.')
+    else:
+        try:
+            model.fit_generator(gen, steps_per_epoch=30, epochs=80, validation_data = val_gen, validation_steps=20, callbacks=callbacks())
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt Received. Weights Saved.')
+        finally:
+            model.save_weights(savepath)
+    return model
+
+	
+'''
