@@ -56,7 +56,20 @@ def create_pair_rgb(path,single,ext='jpg'):
     plt.imshow(img2)
     plt.show()
     '''
+    if img1 is None or img2 is None:
+        return None
     return np.array([img1, img2])
+
+def generate(path,mode,single,shape=(2,128,128,3),ext='jpg'):
+    x=None
+    y_dict={'positive':np.array([0.]),'negative':np.array([1.])}
+    while x is None:
+        path_=get_dir(path,mode,ext)
+        x=create_pair_rgb(path_,single,ext=ext)
+    x=x.reshape(shape)
+    y=y_dict[mode]
+    return x,y
+    
     
 def generator(path,single,batch_size=16,shape=(2,128,128,3),ext='jpg'):
   path=glob.glob(path+'*')
@@ -66,14 +79,12 @@ def generator(path,single,batch_size=16,shape=(2,128,128,3),ext='jpg'):
     switch=True
     for _ in range(batch_size):
       if switch:
-        pathp=get_dir(path,'positive',ext)
-        X.append(create_pair_rgb(pathp,single,ext=ext).reshape(shape))
-        y.append(np.array([0.]))
+        x_,y_=generate(path,'positive',single,shape,ext)
       else:
-        pathn=get_dir(path,'negative',ext)
-        X.append(create_pair_rgb(pathn,single,ext=ext).reshape(shape))
-        y.append(np.array([1.]))
+        x_,y_=generate(path,'negative',single,shape,ext)
       switch=not switch
+      X.append(x_)
+      y.append(y_)
     X = np.asarray(X)
     y = np.asarray(y)
     x=[X[:,0],X[:,1]]
@@ -84,7 +95,7 @@ val_gen_vap = generator(val_dir,create_single_VAPRGBD,batch_size=4,ext='bmp',sha
 gen_vgg = generator(train_dir_vgg,create_single_VGGFACE)
 val_gen_vgg = generator(val_dir_vgg,create_single_VGGFACE,batch_size=4)
 gen_vgg2 = generator(train_dir_vgg2,create_single_VGGFACE,batch_size=32)
-val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=16)
+val_gen_vgg2 = generator(val_dir_vgg2,create_single_VGGFACE,batch_size=8)
 
 #AM-Softmax/LMCL
 def singleGenerator(path,single=create_single_VGGFACE,size=(128,128),ext='jpg',batch_size=(12,3),separate=0.8,select='train',count=1000):
@@ -118,8 +129,13 @@ sg_vgg2=singleGenerator(train_dir_vgg2,count=750)
 sg_vgg2_val=singleGenerator(train_dir_vgg2,select='val',count=750)
         
 if __name__=='__main__':
+    while 1:
+        x,y=next(val_gen_vgg2)
+        for i in x:print(i.shape)
     #print(next(singleGenerator(val_dir_vgg2,count=5,batch_size=(2,3))))
+    '''
     while 1:
         a=next(singleGenerator(val_dir_vgg2,count=5,batch_size=(13,3)))
         print(0)
     pass
+    '''

@@ -48,21 +48,27 @@ def loadImage(file_path,resize=(128,128)):
     img = cv2.resize(img, resize)
     return img
 
+def eucilidian_distance(u, v):
+    ans = u - v
+    ans = np.sqrt(np.dot(ans, ans.T))
+    return ans[0, 0]
     
-def angle(a,b):
-    c=np.dot(a,b.T)
-    d1=np.dot(a,a.T)**0.5
-    d2=np.dot(b,b.T)**0.5
-    e=c/(d1*d2)
-    return np.arccos(e)*180 / np.pi
+def angle(a, b):
+    c = np.dot(a,b.T)
+    d1 = np.dot(a,a.T)**0.5
+    d2 = np.dot(b,b.T)**0.5
+    e = c / (d1 * d2)
+    return (np.arccos(e) * 180 / np.pi)#[0, 0]
 
-def calculateDis(img1,img2,mode='cons'):
+def calculateDis(img1,img2,mode='cons',zeros=0):
     if mode=='cons':
-        return model_cons.predict([img1.reshape((1,128,128,3)),img2.reshape((1,128,128,3))])[0,0]
+        a=model_cons.predict([img1.reshape((1,128,128,3))])[zeros:]
+        b=model_cons.predict([img2.reshape((1,128,128,3))])[zeros:]
+        return min(eucilidian_distance(a,b),1)
     elif mode=='lmcl':
-        a=model_lmcl.predict(img1.reshape((1,128,128,3)))#[0,0]
-        b=model_lmcl.predict(img2.reshape((1,128,128,3)))#[0,0]
-        return angle(a,b)
+        a=model_lmcl.predict(img1.reshape((1,128,128,3)))[zeros:]
+        b=model_lmcl.predict(img2.reshape((1,128,128,3)))[zeros:]
+        return angle(a,b)/180
         
 def enumPath_cons(img,path,ends='.jpg'):
     print('Enum Path: {}...'.format(path))
@@ -96,7 +102,7 @@ def enumPath_lmcl(img,embed):
     for p in embed:
         time[p]=0
         for e in embed[p]:
-            i=angle(cur,e)[0,0]
+            i=angle(cur,e)
             time[p]+=1
             if time[p]==1:
                 ans[p]=i
