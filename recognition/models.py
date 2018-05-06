@@ -41,7 +41,7 @@ def Siamase1(model,opt='sgd',shape=(128,128,3)):
     feat_x = Lambda(lambda x: K.l2_normalize(x,axis=1))(feat_x)
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
-    plot_model(model_top,to_file='model_top.png',show_shapes=True)
+    #plot_model(model_top,to_file='model_top.png',show_shapes=True)
     #model_top.summary()
     
     im_in1 = Input(shape=shape)
@@ -59,7 +59,7 @@ def Siamase1(model,opt='sgd',shape=(128,128,3)):
     sgd = SGD(lr=0.001, momentum=0.9)
     opt_dict={'adam':adam,'sgd':sgd}
     model_final.compile(optimizer=opt_dict[opt], loss=contrastive_loss)
-    plot_model(model_final,to_file='model_siamase1.png',show_shapes=True)
+    #plot_model(model_final,to_file='model_siamase1.png',show_shapes=True)
 	
     return model_final
 

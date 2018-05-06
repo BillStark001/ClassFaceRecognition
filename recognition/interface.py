@@ -21,7 +21,7 @@ test_dir = root + '\\test\\'
 save_name = 'fc_cache.npy'
 
 mn2_weights = 'mn2.h5'
-mn_lmcl_weights = 'mn_lmcl_sgd.h5'
+mn_lmcl_weights = 'mn_lmcl.h5'
 
 ### NOTE: ???
 try:
@@ -154,7 +154,7 @@ def load_embed(path):
     return embed
     
 def fake_main():
-    #embed=save_embeddings(save='embed.pkl')
+    embed=save_embeddings(save='embed.pkl')
     embed=load_embed('embed.pkl')
     img = loadImage('zjn.jpg')
     img = np.expand_dims(img, 0)
