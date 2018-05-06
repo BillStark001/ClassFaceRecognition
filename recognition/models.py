@@ -27,21 +27,16 @@ def contrastive_loss(y_true,y_pred):
     return K.mean((1. - y_true) * K.square(y_pred) + y_true * K.square(K.maximum(margin - y_pred, 0.)))
 
 def Siamase1(model,opt='sgd',shape=(128,128,3)):
-    
     im_in = Input(shape=shape)
     
     x1 = model(im_in)
     x1 = GlobalAveragePooling2D()(x1)
-    #x1 = Flatten()(x1)
-    x1 = Dense(512, activation='tanh')(x1)
-    x1 = Dense(512, activation='tanh')(x1)
-    x1 = Dropout(0.2)(x1)
-    
-    feat_x = Dense(128, activation='tanh')(x1)
+    x1 = Dense(512, activation='tanh', name='fc_00')(x1)
+    feat_x = Dense(128, activation='tanh', name='fc_out')(x1)
     feat_x = Lambda(lambda x: K.l2_normalize(x,axis=1))(feat_x)
     
     model_top = Model(inputs = [im_in], outputs = feat_x)
-    plot_model(model_top,to_file='model_top.png',show_shapes=True)
+    #plot_model(model_top,to_file='model_top.png',show_shapes=True)
     #model_top.summary()
     
     im_in1 = Input(shape=shape)
@@ -54,19 +49,18 @@ def Siamase1(model,opt='sgd',shape=(128,128,3)):
     
     model_final = Model(inputs = [im_in1, im_in2], outputs = lambda_merge)
     #model_final.summary()
-    
-    adam = Adam(lr=0.001)
-    sgd = SGD(lr=0.001, momentum=0.9)
-    opt_dict={'adam':adam,'sgd':sgd}
-    model_final.compile(optimizer=opt_dict[opt], loss=contrastive_loss)
-    plot_model(model_final,to_file='model_siamase1.png',show_shapes=True)
+    model_final.compile(optimizer=opt, loss=contrastive_loss)
+    #plot_model(model_final, to_file='model_siamase1.png', show_shapes=True)
 	
-    return model_final
+    return model_final, model_top
 
-def MobileNet_FT(opt='sgd',shape=(128,128,3)):
-    model=MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
-    #model.summary()
-    return Siamase1(model,opt=opt,shape=shape)
+def MobileNet_FT(opt='sgd',shape=(128,128,3),output_fc=False):
+    model = MobileNet(include_top=False, weights='imagenet', input_tensor=None, input_shape=shape, pooling=None)
+    m1,m2 = Siamase1(model, opt=opt, shape=shape)
+    if output_fc:
+        return m2
+    else:
+        return m1
     
 def DenseLMCL(x, units, name='fc_final', s=24, m=0.2):
     W = Dense(units, use_bias=False, kernel_constraint=constraints.unit_norm(), name=name)

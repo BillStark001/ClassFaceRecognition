@@ -20,10 +20,6 @@ from keras.callbacks import ReduceLROnPlateau,EarlyStopping,TensorBoard
 
 root='F:\\Datasets'
 #root='C:\\Users\\zhaoj\\Documents\\Datasets'
-train_dir_vap=root+'\\VAPRBGD\\train\\'
-val_dir_vap=root+'\\VAPRBGD\\val\\'
-train_dir_vgg=root+'\\VGGFACE\\train\\'
-val_dir_vgg=root+'\\VGGFACE\\val\\'
 train_dir_vgg2=root+'\\VGGFACE2\\train\\'
 val_dir_vgg2=root+'\\VGGFACE2\\val\\'
 cb_dir='callbacks.h5'
@@ -33,12 +29,12 @@ print('Recognition Networks Loaded.')
 def callbacks(opt='adam'):
     def lrs_sgd(epoch):
         lr=1e-2
-        if epoch>210:lr*=5e-5
-        elif epoch>170:lr*=1e-4
-        elif epoch>130:lr*=5e-4
-        elif epoch>90:lr*=1e-3
-        elif epoch>55:lr*=1e-2
-        elif epoch>25:lr*=1e-1
+        if epoch>160:lr*=5e-5
+        elif epoch>130:lr*=1e-4
+        elif epoch>100:lr*=5e-4
+        elif epoch>80:lr*=1e-3
+        elif epoch>50:lr*=1e-2
+        elif epoch>20:lr*=1e-1
         print('Learning rate: ',lr)
         return lr
     def lrs_adam(epoch):
@@ -55,44 +51,43 @@ def callbacks(opt='adam'):
     lr_schedule={'adam':lrs_adam,'sgd':lrs_sgd}
     lr_scheduler=LearningRateScheduler(lr_schedule[opt]) 
     board=TensorBoard(log_dir='./logs')
-    checkpoint=ModelCheckpoint(filepath=cb_dir,monitor='val_acc',verbose=1,save_best_only=True)
     stopping=EarlyStopping(patience=10,verbose=0,mode='auto')
 
     lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=15,epsilon=0.001,min_lr=1e-9)
     
-    return [
-            #checkpoint,
-            lr_reducer,
-            #lr_scheduler,
-            board
-            #stopping
-           ]
+    return_schedule={'sgd':[lr_scheduler],'adam':[lr_reducer,board]}
+    return return_schedule[opt]
     
 #Contrastive Loss
 
 def mn_vgg2(load=1,opt='sgd',savepath='mn2.h5'):
     gen=data_loader.gen_vgg2
     val_gen=data_loader.val_gen_vgg2
-    model=models.MobileNet_FT(opt=opt)
     
-    if load==1:
-        print('Loading weights...')
-        model.load_weights(savepath)
-    else:
+    if load!=1:
+        model=models.MobileNet_FT(opt=opt)
         try:
-            #pass
-            model.fit_generator(gen,steps_per_epoch=30,epochs=100,
-                                validation_data=val_gen,validation_steps=20,
+            model.fit_generator(gen,steps_per_epoch=48,epochs=100,
+                                validation_data=val_gen,validation_steps=24,
                                 callbacks=callbacks(opt))
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
         finally:
             model.save_weights(savepath)
-            
-    print('Fine_Tuned MobileNet loaded,using VGGFace2 dataset.')
+    
+    print('Loading weights...')
+    model=models.MobileNet_FT(opt=opt,output_fc=True)
+    model.load_weights(savepath,by_name=True)
+    print('Fine_Tuned MobileNet loaded, using Contrastive loss.')
+    
     return model
 
-def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500,acc=1000):
+def eucilidian_distance(u, v):
+    ans = u - v
+    ans = np.sqrt(np.dot(ans, ans.T))
+    return ans
+
+def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=250,acc=1000):
     cp,cn,cs=[],[],[]
     val_dir=glob.glob(val_dir+'*')
     
@@ -100,10 +95,15 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=500,acc
         pathp=data_loader.get_dir(val_dir,'positive',form)
         pathn=data_loader.get_dir(val_dir,'negative',form)
         cop=data_loader.create_pair_rgb(pathp,single,form)
-        c1=model.predict([cop[0].reshape(shape),cop[1].reshape(shape)])[0,0]
+        c11=model.predict([cop[0].reshape(shape)])
+        c12=model.predict([cop[1].reshape(shape)])
+        c1=eucilidian_distance(c11,c12)
         cop=data_loader.create_pair_rgb(pathn,single,form)
-        c2=model.predict([cop[0].reshape(shape),cop[1].reshape(shape)])[0,0]
-        if i%50==0:print('Group %d: Positive: %.3f - Negative: %.3f'%(i+1,c1,c2))
+        c21=model.predict([cop[0].reshape(shape)])
+        c22=model.predict([cop[1].reshape(shape)])
+        c2=eucilidian_distance(c21,c22)
+        if (i+1)%50==0:
+            print('Group %d: Positive: %.3f - Negative: %.3f'%(i+1,c1,c2))
         
         cp.append(c1)
         cn.append(c2)
@@ -172,19 +172,19 @@ def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=750,preload=None):
     print('Loading weights...')
     model=models.MobileNet_LMCL(opt=opt,output_fc=True,units=units)
     model.load_weights(savepath,by_name=True)
-    print('Fine_Tuned MobileNet loaded,using VGGFace2 dataset and LMCL loss.')
+    print('Fine_Tuned MobileNet loaded, using LMCL loss.')
     
     return model
 
 def main():
-    '''
-    model=mn_vgg2(1)
+    
+    model=mn_vgg2(0)
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     #model=mn_vgg2(0,opt='adam',savepath='mn1.h5')
     #evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     '''
     model=mn_vgg2_lmcl(0)
     #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
-    
+    '''
 if __name__=='__main__':
     main()
