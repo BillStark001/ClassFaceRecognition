@@ -74,13 +74,16 @@ def evaluate(pairs=read_pairs(), count=600, base_model='mnv1', loss='lmcl', vect
         if c % 15 == 0: print('{}/{}'.format(c, count))
         x, y = read_pair(pair, black)
         dis = []
-        for i in vector_split:
-            dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=i))
+        dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=0)[0,0])
+        #for i in vector_split:
+        #    dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=i))
         y_true.append([y])
         y_pred.append(dis)
     return y_true, y_pred
 
 def draw_roc(y_true, y_pred, legend='', show=True):
+    print(y_true)
+    print(y_pred)
     tp, fp, th = met.roc_curve(y_true, y_pred)
     a = plt.plot(tp, fp, label=legend + ' - auc=%.3f'%met.auc(tp, fp))
     plt.legend(handles=a)
@@ -116,9 +119,10 @@ def blacken(image, mask=gen_mask()):
 
 if __name__ == '__main__':
     file = read_pairs()
-    yt, yp = evaluate(vector_split=zero_set)
-    for i in range(8):
-        draw_roc(yt[0], yp[i], legend='Zero Setted: %d'%zero_set[i], show=False)
+    yt, yp = evaluate(vector_split=zero_set, loss='lmcl')
+    #for i in range(8):
+    #    draw_roc(yt[0], yp[i], legend='Zero Setted: %d'%zero_set[i], show=False)
+    draw_roc(yt, yp)
     plt.show()
     '''
     yt, yp = [], []

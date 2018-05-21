@@ -68,7 +68,7 @@ def calculateDis(img1,img2,mode='cons',zeros=0):
     elif mode=='lmcl':
         a=model_lmcl.predict(img1.reshape((1,128,128,3)))[zeros:]
         b=model_lmcl.predict(img2.reshape((1,128,128,3)))[zeros:]
-        return angle(a,b)/180
+        return (angle(a,b)/180)[0,0]
         
 def enumPath_cons(img,path,ends='.jpg'):
     print('Enum Path: {}...'.format(path))

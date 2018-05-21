@@ -117,51 +117,34 @@ def evaluate_cl(model,val_dir,single,form='jpg',shape=(1,128,128,3),time=250,acc
     cn=np.array(cn)*acc
     cn=np.array(cn,dtype=np.int32)
     
-    crp,crn=np.zeros(acc,dtype=np.int32),np.zeros(acc,dtype=np.int32)
-    for i in range(time):
-        try:crp[cp[i]]+=1
-        except IndexError as e:crp[999]+=1
-        try:crn[cn[i]]+=1
-        except IndexError as e:crn[999]+=1
-    for i in range(acc):
-        if i==0:continue
-        crp[i]+=crp[i-1]
-        crn[i]+=crn[i-1]
-    
-    rocx,rocy=[],[]
-    rocs=np.ones(time)#*time
-
-    for i in range(acc):
-        rocx.append(time-crp[i])
-        rocy.append(time-crn[i])
-        try:rocs[time-crp[i]]=min(time-crn[i],rocs[time-crp[i]])
-        except:rocs[time-1]=min(time-crn[i],rocs[time-1])
-        
-
-    plt.scatter(range(acc),crp,s=1e-0)
-    plt.scatter(range(acc),crn,s=1e-0)
-    #plt.scatter(range(time),cs,s=3e-2)
+    plt.scatter(range(cp),cp,s=1e-0)
+    plt.scatter(range(cn),cn,s=1e-0)
     plt.show()
-    
-    plt.scatter(rocx,rocy,s=7e-1)
-    plt.show()
-    
-    s=np.sum(rocs)/time**2
-    print('ROC:%.3f'%s)
     
 #LMCL
+def data_generator(path, target_size=(112, 112), batch_size=128):
+    from keras.preprocessing.image import ImageDataGenerator
+    datagen = ImageDataGenerator(
+            horizontal_flip=True,
+            preprocessing_function=lambda x: (x - 127.5) / 128,
+    )
+    train_gen = datagen.flow_from_directory(path, target_size=target_size, batch_size=batch_size)
+    # val_gen = datagen.flow_from_directory(path, target_size=target_size, batch_size=batch_size)
+    # val_gen is now identical with train_gen
+    return train_gen
 
-def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=750,preload=None):
-    
-    gen=data_loader.singleGenerator(train_dir_vgg2,count=units)
-    val_gen=data_loader.singleGenerator(train_dir_vgg2,select='val',count=units)
-    
+def mn_vgg2_lmcl(load=1, version=1, opt='sgd', savepath='mn_lmcl.h5', classes=1000, preload=None):
+    gen = data_loader.singleGenerator(train_dir_vgg2,count=classes,batch_size=(24,3))
+    val_gen = data_loader.singleGenerator(train_dir_vgg2,select='val',count=classes)
     if load!=1:
-        model=models.MobileNet_LMCL(opt=opt,units=units)
+        if version == 1:
+            model=models.MobileNet_LMCL(opt=opt,classes=classes)
+        else:
+            model=models.MobileNetV2_LMCL(opt=opt,classes=classes)
         if isinstance(preload,str):
             model.load_weights(preload)
         try:
-            model.fit_generator(gen,steps_per_epoch=72,epochs=300,
+            model.fit_generator(gen,steps_per_epoch=36,epochs=300,
                                 validation_data=val_gen,validation_steps=6,
                                 callbacks=callbacks(opt))
         except KeyboardInterrupt:
@@ -170,21 +153,24 @@ def mn_vgg2_lmcl(load=1,opt='sgd',savepath='mn_lmcl.h5',units=750,preload=None):
             model.save_weights(savepath)
     
     print('Loading weights...')
-    model=models.MobileNet_LMCL(opt=opt,output_fc=True,units=units)
+    if version == 1:
+        model=models.MobileNet_LMCL(opt=opt,output_fc=True,classes=classes)
+    else:
+        model=models.MobileNetV2_LMCL(opt=opt,output_fc=True,classes=classes)
     model.load_weights(savepath,by_name=True)
     print('Fine_Tuned MobileNet loaded, using LMCL loss.')
     
     return model
 
 def main():
-    
+    '''
     model=mn_vgg2(0)
     evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     #model=mn_vgg2(0,opt='adam',savepath='mn1.h5')
     #evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
     '''
-    model=mn_vgg2_lmcl(0)
+    model=mn_vgg2_lmcl(0, version=2)
     #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
-    '''
+    
 if __name__=='__main__':
     main()
