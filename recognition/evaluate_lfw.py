@@ -74,7 +74,7 @@ def evaluate(pairs=read_pairs(), count=600, base_model='mnv1', loss='lmcl', vect
         if c % 15 == 0: print('{}/{}'.format(c, count))
         x, y = read_pair(pair, black)
         dis = []
-        dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=0)[0,0])
+        dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=0))
         #for i in vector_split:
         #    dis.append(rec.calculateDis(x[0], x[1], mode=loss, zeros=i))
         y_true.append([y])

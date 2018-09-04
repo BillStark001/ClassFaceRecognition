@@ -187,8 +187,18 @@ def ModelLMCL(base_model, output_fc=False, scale=30, margin=0.1, opt='adam', emb
     #model.summary()
     return model
 
+def LambdaNorm(x, mode=0):
+    if mode == 0:
+        x = Lambda(lambda d: d / 256)(x)
+    elif mode == 1:
+        x = Lambda(lambda d: (d - 127.5) / 128)(x)
+    return x
+
 def MobileNet_LMCL(output_fc=False, scale=30, margin=0.1, opt='adam', input_shape=(128,128,3), embedding_size=128, classes=1000):
-    model = MobileNet(include_top=False, weights='imagenet', input_shape=input_shape, pooling='avg')
+    model = Input(shape=input_shape)
+    model = LambdaNorm(model, 1)
+    model = MobileNet(include_top=False, weights='imagenet', input_shape=input_shape, pooling='avg')(model)
+    #model = MobileNet(include_top=False, weights='imagenet', input_shape=input_shape, pooling='avg')
     model = ModelLMCL(model, output_fc=output_fc, scale=scale, margin=margin, opt=opt, embedding_size=embedding_size, classes=classes)
     return model
 

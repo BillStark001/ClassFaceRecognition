@@ -15,8 +15,9 @@ except ImportError as e:
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.callbacks import ModelCheckpoint,LearningRateScheduler
-from keras.callbacks import ReduceLROnPlateau,EarlyStopping,TensorBoard
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping, TensorBoard
+from keras.optimizers import Adam, SGD
 
 root='F:\\Datasets'
 #root='C:\\Users\\zhaoj\\Documents\\Datasets'
@@ -27,6 +28,10 @@ cb_dir='callbacks.h5'
 print('Recognition Networks Loaded.')
 
 def callbacks(opt='adam'):
+    if isinstance(opt, Adam):
+        opt = 'adam'
+    elif not isinstance(opt, str):
+        opt = 'sgd'
     def lrs_sgd(epoch):
         lr=1e-2
         if epoch>160:lr*=5e-5
@@ -53,9 +58,9 @@ def callbacks(opt='adam'):
     board=TensorBoard(log_dir='./logs')
     stopping=EarlyStopping(patience=10,verbose=0,mode='auto')
 
-    lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=15,epsilon=0.001,min_lr=1e-9)
+    lr_reducer=ReduceLROnPlateau(factor=np.sqrt(0.1),cooldown=0,patience=7,epsilon=0.001,min_lr=1e-9)
     
-    return_schedule={'sgd':[lr_scheduler],'adam':[lr_reducer,board]}
+    return_schedule={'sgd':[lr_reducer, board],'adam':[lr_reducer, board]}
     return return_schedule[opt]
     
 #Contrastive Loss
@@ -133,19 +138,19 @@ def data_generator(path, target_size=(112, 112), batch_size=128):
     # val_gen is now identical with train_gen
     return train_gen
 
-def mn_vgg2_lmcl(load=1, version=1, opt='sgd', savepath='mn_lmcl.h5', classes=1000, preload=None):
-    gen = data_loader.singleGenerator(train_dir_vgg2,count=classes,batch_size=(24,3))
-    val_gen = data_loader.singleGenerator(train_dir_vgg2,select='val',count=classes)
+def mn_vgg2_lmcl(load=1, version=1, opt='adam', savepath='mn_lmcl.h5', classes=1000, preload=None, epochs=200):
+    gen = data_loader.singleGenerator(train_dir_vgg2, count=classes, separate=1, batch_size=(16,3))
+    val_gen = data_loader.singleGenerator(val_dir_vgg2, count=classes, separate=1, batch_size=(8,3))
     if load!=1:
         if version == 1:
-            model=models.MobileNet_LMCL(opt=opt,classes=classes)
+            model = models.MobileNet_LMCL(opt=opt, classes=classes)
         else:
-            model=models.MobileNetV2_LMCL(opt=opt,classes=classes)
-        if isinstance(preload,str):
-            model.load_weights(preload)
+            model = models.MobileNetV2_LMCL(opt=opt, classes=classes)
+        if isinstance(preload, str):
+            model.load_weights(preload, by_name=True)
         try:
-            model.fit_generator(gen,steps_per_epoch=36,epochs=300,
-                                validation_data=val_gen,validation_steps=6,
+            model.fit_generator(gen, steps_per_epoch=36, epochs=epochs,
+                                validation_data=val_gen, validation_steps=6,
                                 callbacks=callbacks(opt))
         except KeyboardInterrupt:
             print('KeyboardInterrupt received. Weights saved.')
@@ -154,23 +159,39 @@ def mn_vgg2_lmcl(load=1, version=1, opt='sgd', savepath='mn_lmcl.h5', classes=10
     
     print('Loading weights...')
     if version == 1:
-        model=models.MobileNet_LMCL(opt=opt,output_fc=True,classes=classes)
+        model = models.MobileNet_LMCL(opt=opt, output_fc=True, classes=classes)
     else:
-        model=models.MobileNetV2_LMCL(opt=opt,output_fc=True,classes=classes)
-    model.load_weights(savepath,by_name=True)
+        model = models.MobileNetV2_LMCL(opt=opt, output_fc=True, classes=classes)
+    model.load_weights(savepath, by_name=True)
     print('Fine_Tuned MobileNet loaded, using LMCL loss.')
     
     return model
 
+def train_lmcl_adam():
+    adam_4 = Adam(lr=1e-4)
+    #model = mn_vgg2_lmcl(0, opt='adam', version=2, epochs=50, classes=125, savepath='mn_lmcl_125.h5')
+    #model = mn_vgg2_lmcl(0, opt='adam', version=2, epochs=100, classes=250, savepath='mn_lmcl_250.h5', preload='mn_lmcl_125.h5')
+    #model = mn_vgg2_lmcl(0, opt=adam_4, version=2, epochs=150, classes=500, savepath='mn_lmcl_500.h5', preload='mn_lmcl_250.h5')
+    model = mn_vgg2_lmcl(0, opt='adam', version=2, epochs=200, classes=1000, savepath='mn_lmcl_1000.h5', preload='mn_lmcl_500.h5')
+    return model
+
+def train_lmcl_sgd():
+    #sgd_4 = SGD(lr=3e-4)
+    #model = mn_vgg2_lmcl(0, opt='sgd', version=2, epochs=50, classes=125, savepath='mns_lmcl_125.h5')
+    #model = mn_vgg2_lmcl(0, opt='sgd', version=2, epochs=100, classes=250, savepath='mns_lmcl_250.h5')
+    #model = mn_vgg2_lmcl(0, opt='sgd', version=2, epochs=150, classes=500, savepath='mns_lmcl_500.h5', preload='mns_lmcl_250.h5')
+    #model = mn_vgg2_lmcl(0, opt='sgd', version=2, epochs=200, classes=1000, savepath='mns_lmcl_1000.h5', preload='mns_lmcl_500.h5')
+    model = mn_vgg2_lmcl(0, opt='sgd', version=2, epochs=200, classes=768, savepath='mns_lmcl_768.h5', preload='mn_lmcl_500.h5')
+    return model
+
+def train_cont():
+    model = mn_vgg2(0)
+    #model = mn_vgg2(0, opt='adam', savepath='mn1.h5')
+    evaluate_cl(model, val_dir_vgg2, data_loader.create_single_VGGFACE)
+    return model
+
 def main():
-    '''
-    model=mn_vgg2(0)
-    evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
-    #model=mn_vgg2(0,opt='adam',savepath='mn1.h5')
-    #evaluate_cl(model,val_dir_vgg2,data_loader.create_single_VGGFACE)
-    '''
-    model=mn_vgg2_lmcl(0, version=2)
-    #model=mn_vgg2_lmcl(0,savepath='mn_lmcl_adam.h5',preload='mn_lmcl_sgd.h5')
+    model = train_lmcl_sgd()
     
 if __name__=='__main__':
     main()

@@ -6,3 +6,4 @@ recognition/zjn.jpg
 recognition/callbacks.h5
 recognition/mn_am.h5
 recognition/logs/*
+*.h5

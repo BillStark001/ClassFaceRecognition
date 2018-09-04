@@ -21,7 +21,7 @@ test_dir = root + '\\test\\'
 save_name = 'fc_cache.npy'
 
 mn2_weights = 'mn2.h5'
-mn_lmcl_weights = 'mn_lmcl.h5'
+mn_lmcl_weights = 'mn_lmcl_500.h5'
 
 ### NOTE: ???
 try:
@@ -34,9 +34,19 @@ try:
     assert model_cons and model_lmcl
 except:
     model_cons = nnet.mn_vgg2(savepath=mn2_weights)
-    model_lmcl = nnet.mn_vgg2_lmcl(savepath=mn_lmcl_weights)
+    model_lmcl = nnet.mn_vgg2_lmcl(savepath=mn_lmcl_weights, version=2)
     
 print('Recognition Interface Loaded.')
+
+def normalize01(img):
+    img = np.array(img, dtype=np.float32)
+    img = img / 256
+    return img
+
+def normalize11(img):
+    img = np.array(img, dtype=np.float32)
+    img = (img - 127.5) / 128
+    return img
 
 def loadImage(file_path,resize=(128,128)):
     img = cv2.imread(file_path)
